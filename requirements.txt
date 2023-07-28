@@ -1,0 +1,2 @@
+chromadb-client==0.4.3.dev0
+pytest==7.4.0
