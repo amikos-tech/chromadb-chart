@@ -10,7 +10,14 @@ This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using
 - Minikube
 - Helm
 
-> Note: Don't worry read-on for instruction how to setup of the prerequisites.
+## Notes on the Chart image
+
+To make it possible and efficient to run chroma in Kubernetes we take the chroma base image (ghcr.io/chroma-core/chroma:<tag>) and we improve on it by:
+
+- Removing unnecessary files from the `/chroma` dir
+- Improving on the `docker_entrypoint.sh` script to make it more suitable for running in Kubernetes
+
+Checkout `image/` dir for more details.
 
 ## Installing the Chart
 
@@ -70,3 +77,9 @@ For this example we'll set up a Kubernetes cluster using minikube.
 ```bash
 minikube start --addons=ingress
 ```
+
+## References
+
+- Helm install: https://helm.sh/docs/intro/install/
+- Minikube install: https://minikube.sigs.k8s.io/docs/start/
+- ChromaDB: https://docs.trychroma.com/getting-started
