@@ -104,7 +104,7 @@ chromadb:
   anonymizedTelemetry: "false"
   corsAllowOrigins:
     - "*"
-#  apiImpl: "chromadb.api.fastapi.FastAPI"
+#  apiImpl: "chromadb.api.fastapi.FastAPI" # this doesn't seem to be working.
   apiImpl: "chromadb.api.segment.SegmentAPI"
   serverHost: "0.0.0.0"
   serverHttpPort: 8080
