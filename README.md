@@ -4,17 +4,60 @@ This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using
 
 ## Prerequisites
 
+> Note: These prerequisites are necessary for local testing. If you have a Kubernetes cluster already setup you can skip
+
 - Docker
 - Minikube
 - Helm
 
 > Note: Don't worry read-on for instruction how to setup of the prerequisites.
 
-
 ## Installing the Chart
 
+Setup the helm repo:
 
-expose the service
+```bash
+helm repo add chroma https://amikos-tech.github.io/chromadb-chart/
+helm repo update
+helm search repo chroma
+```
+
+Update the `values.yaml` file to match your environment.
+
+```bash
+helm install chroma chroma/chromadb -f values.yaml
+```
+
+Example `values.yaml` file:
+
+```yaml
+chromadb:
+  allowReset: "true"
+```
+
+Alternatively you can specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
+
+```bash
+helm install chroma chroma/chromadb --set chromadb.allowReset="true"
+```
+
+## Chart Configuration Values
+
+| Key                               | Type    | Default                               | Description                                                                                                                                                                        |
+|-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
+| `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
+| `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
+| `chromadb.logConfigFileLocation`  | string  | `config/log_config.yaml`              | The location of the log config file. By default the on in the chart's config/ dir is taken                                                                                         |
+| `chromadb.anonymizedTelemetry`    | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                         |
+| `chromadb.corsAllowOrigins`       | list    | `- "*"`                               | The CORS config. By default we allow all (possibly a security concern)                                                                                                             |
+| `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 |
+| `chromadb.serverHost`             | string  | `0.0.0.0`                             | The API server host.                                                                                                                                                               |
+| `chromadb.serverHttpPort`         | int     | `8000`                                | The API server port.                                                                                                                                                               |
+| `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
+| `chromadb.dataVolumeStorageClass` | striung | `standard`                            | The storage class                                                                                                                                                                  |
+
+## Verifying installation
 
 ```bash
 minikube service chroma-chromadb --url
@@ -22,7 +65,7 @@ minikube service chroma-chromadb --url
 
 ## Setup Kubernetes Cluster
 
-For this example we'll setup a Kubernetes cluster using minikube.
+For this example we'll set up a Kubernetes cluster using minikube.
 
 ```bash
 minikube start --addons=ingress

@@ -44,7 +44,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources:
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -52,9 +52,9 @@ resources:
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
 
 autoscaling:
   enabled: false
@@ -95,16 +95,16 @@ startupProbe:
   initialDelaySeconds: 10
 
 chromadb:
-  impl: "clickhouse"
-  clickhouseHost: "clickhouse"
-  clickhousePort: 8123
   allowReset: "false"
   isPersistent: "true"
   persistDirectory: /index_data
+  logConfigFileLocation: config/log_config.yaml
   anonymizedTelemetry: "false"
   corsAllowOrigins:
     - "*"
 #  apiImpl: "chromadb.api.fastapi.FastAPI" # this doesn't seem to be working.
   apiImpl: "chromadb.api.segment.SegmentAPI"
   serverHost: "0.0.0.0"
-  serverHttpPort: 8080
+  serverHttpPort: 8000
+  dataVolumeSize: "1Gi"
+  dataVolumeStorageClass: "standard"
