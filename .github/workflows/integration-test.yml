@@ -1,0 +1,40 @@
+name: Integration test
+
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - name: start minikube
+        id: minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Add helm repo
+        run: |
+          set -e
+          helm repo add chromadb https://amikos-tech.github.io/chromadb-chart/
+          helm repo update
+      - name: Install chromadb
+        run: |
+          set -e
+          helm install chromadb chromadb/chromadb
+      - name: Sleep for 10 seconds
+        run: |
+          set -e
+          sleep 10
+      - name: Hearthbeat
+        run: |
+          set -e
+          curl $(minikube service chroma-chromadb --url)/api/v1
