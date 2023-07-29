@@ -4,11 +4,14 @@ on:
   push:
     branches:
       - develop
+      - main
 jobs:
   release:
     strategy:
       matrix:
         kubernetes-version: [ 1.24.0, 1.27.3 ]
+        isPersistent: [ true, false ]
+        allowReset: [ true, false ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,7 +37,7 @@ jobs:
       - name: Install chromadb
         run: |
           set -e
-          helm install chromadb chromadb/chromadb
+          helm install chromadb chromadb/chromadb --set chromadb.isPersistent=${{ matrix.isPersistent }} --set chromadb.allowReset=${{ matrix.allowReset }}
       - name: Wait for deployment to be ready
         run: |
           set -e

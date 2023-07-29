@@ -95,11 +95,11 @@ startupProbe:
   initialDelaySeconds: 10
 
 chromadb:
-  allowReset: "false"
-  isPersistent: "true"
+  allowReset: false
+  isPersistent: true
   persistDirectory: /index_data
   logConfigFileLocation: config/log_config.yaml
-  anonymizedTelemetry: "false"
+  anonymizedTelemetry: false
   corsAllowOrigins:
     - "*"
 #  apiImpl: "chromadb.api.fastapi.FastAPI" # this doesn't seem to be working.
