@@ -6,10 +6,10 @@ replicaCount: 1
 
 image:
 #  repository: ghcr.io/chroma-core/chroma
-  repository: amikos/chroma
+  repository: ghcr.io/amikos-tech/chromadb-chart/chroma
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.4.3"
+  tag: "latest"
 
 imagePullSecrets: [ ]
 nameOverride: ""
