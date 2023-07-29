@@ -6,6 +6,9 @@ on:
       - develop
 jobs:
   release:
+    strategy:
+      matrix:
+        kubernetes-version: [ latest ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +24,8 @@ jobs:
       - name: start minikube
         id: minikube
         uses: medyagh/setup-minikube@latest
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
       - name: Add helm repo
         run: |
           set -e
@@ -41,4 +46,4 @@ jobs:
         run: |
           set -e
           kubectl get svc -A
-          curl $(minikube service chroma-chromadb --url)/api/v1
+          curl $(minikube service chromadb --url)/api/v1
