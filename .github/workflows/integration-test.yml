@@ -40,4 +40,5 @@ jobs:
       - name: Hearthbeat
         run: |
           set -e
+          kubectl get svc -A
           curl $(minikube service chroma-chromadb --url)/api/v1
