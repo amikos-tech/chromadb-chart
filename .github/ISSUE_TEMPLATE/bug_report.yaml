@@ -1,0 +1,63 @@
+name: Bug Report
+description: File a bug report with ChromaDB Chart
+title: "[Bug]: "
+labels: ["bug", "triage"]
+# assignees:
+#   - octocat
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+#       value: "A bug happened!"
+    validations:
+      required: true
+  - type: dropdown
+    id: chroma-version
+    attributes:
+      label: ChromaDB Version
+      description: What is your chromaDB version?
+      options:
+        - 0.4.3
+    validations:
+      required: true
+  - type: dropdown
+    id: kube-version
+    attributes:
+      label: Kubernetes Version
+      description: What is your Kubernetes version?
+      options:
+        - 1.24.x
+        - 1.25.x
+        - 1.26.x
+        - 1.27.x
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Environment details
+      description: Tell us about your environment setup.
+      placeholder: On-prem k3s, GKE, EKS, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, Kubectl output, Manifests, etc.
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+#   - type: checkboxes
+#     id: terms
+#     attributes:
+#       label: Code of Conduct
+#       description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
+#       options:
+#         - label: I agree to follow this project's Code of Conduct
+#           required: true
