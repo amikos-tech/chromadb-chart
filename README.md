@@ -69,7 +69,12 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 ```bash
 minikube service chroma-chromadb --url
 ```
+## Building the Docker image
 
+```bash
+docker build --no-cache -t <image:tag> -f image/Dockerfile .
+docker push <image:tag>
+```
 ## Setup Kubernetes Cluster
 
 For this example we'll set up a Kubernetes cluster using minikube.
