@@ -1,0 +1,52 @@
+name: Integration test
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+jobs:
+  release:
+    strategy:
+      matrix:
+        kubernetes-version: [ 1.24.0, 1.27.3 ]
+        isPersistent: [ true, false ]
+        allowReset: [ true, false ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - name: start minikube
+        id: minikube
+        uses: medyagh/setup-minikube@latest
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
+      - name: Add helm repo
+        run: |
+          set -e
+          helm repo add chromadb https://amikos-tech.github.io/chromadb-chart/
+          helm repo update
+      - name: Install chromadb
+        run: |
+          set -e
+          helm install chromadb chromadb/chromadb --set chromadb.isPersistent=${{ matrix.isPersistent }} --set chromadb.allowReset=${{ matrix.allowReset }}
+      - name: Wait for deployment to be ready
+        run: |
+          set -e
+          kubectl wait \
+          --for=condition=ready pod \
+          --selector=app.kubernetes.io/name=chromadb \
+          --timeout=120s
+      - name: Hearthbeat
+        run: |
+          set -e
+          kubectl get svc -A
+          curl $(minikube service chromadb --url)/api/v1

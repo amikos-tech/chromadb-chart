@@ -5,6 +5,7 @@ from chromadb import Settings
 def test_chroma():
     client = chromadb.HttpClient(host="localhost", port=8000)
     client.heartbeat()
+    client.reset()
     # collection = client.create_collection("all1-my-documents")
 
 
