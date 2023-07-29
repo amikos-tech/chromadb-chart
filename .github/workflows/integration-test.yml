@@ -30,10 +30,13 @@ jobs:
         run: |
           set -e
           helm install chromadb chromadb/chromadb
-      - name: Sleep for 10 seconds
+      - name: Wait for deployment to be ready
         run: |
           set -e
-          sleep 10
+          kubectl wait \
+          --for=condition=ready pod \
+          --selector=app.kubernetes.io/name=chromadb \
+          --timeout=120s
       - name: Hearthbeat
         run: |
           set -e
