@@ -14,6 +14,7 @@ jobs:
         kubernetes-version: [ 1.24.0, 1.27.3 ]
         isPersistent: [ true, false ]
         allowReset: [ true, false ]
+        chroma-version: [ 0.4.3, 0.4.4 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,7 +40,9 @@ jobs:
       - name: Install chromadb
         run: |
           set -e
-          helm install chromadb chromadb/chromadb --set chromadb.isPersistent=${{ matrix.isPersistent }} --set chromadb.allowReset=${{ matrix.allowReset }}
+          helm install chromadb chromadb/chromadb --set chromadb.isPersistent=${{ matrix.isPersistent }} \
+          --set chromadb.allowReset=${{ matrix.allowReset }} \
+          --set chromadb.chromaVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
         run: |
           set -e
