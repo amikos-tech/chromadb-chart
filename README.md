@@ -2,6 +2,13 @@
 
 This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using the Helm package manager.
 
+## Roadmap
+
+- [ ] Security - the ability to secure chroma API with TLS and OIDC <- PoC completed waiting to be merged in the main
+  repo
+- [ ] Backup and restore - the ability to back up and restore the index data
+- [ ] Monitoring - the ability to monitor the cluster using Prometheus and Grafana
+
 ## Prerequisites
 
 > Note: These prerequisites are necessary for local testing. If you have a Kubernetes cluster already setup you can skip
@@ -12,7 +19,8 @@ This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using
 
 ## Notes on the Chart image
 
-To make it possible and efficient to run chroma in Kubernetes we take the chroma base image (ghcr.io/chroma-core/chroma:<tag>) and we improve on it by:
+To make it possible and efficient to run chroma in Kubernetes we take the chroma base image (
+ghcr.io/chroma-core/chroma:<tag>) and we improve on it by:
 
 - Removing unnecessary files from the `/chroma` dir
 - Improving on the `docker_entrypoint.sh` script to make it more suitable for running in Kubernetes
@@ -52,6 +60,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                               | Type    | Default                               | Description                                                                                                                                                                        |
 |-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `chromadb.apiVersion`             | string  | `0.4.3`                               | The ChromaDB version. Supported version `0.4.3` and `0.4.4`                                                                                                                        |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
 | `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
@@ -69,12 +78,14 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 ```bash
 minikube service chroma-chromadb --url
 ```
+
 ## Building the Docker image
 
 ```bash
 docker build --no-cache -t <image:tag> -f image/Dockerfile .
 docker push <image:tag>
 ```
+
 ## Setup Kubernetes Cluster
 
 For this example we'll set up a Kubernetes cluster using minikube.

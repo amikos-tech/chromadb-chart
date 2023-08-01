@@ -1,4 +1,4 @@
-name: Release Charts
+name: Build Images
 
 on:
   push:
@@ -9,7 +9,10 @@ env:
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
 
 jobs:
-  release:
+  build-images:
+    strategy:
+      matrix:
+        chroma-version: [ 0.4.3, 0.4.4 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,34 +24,22 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.4.0
-
-      - name: Run chart-releaser
-        id: releaser
-        uses: helm/chart-releaser-action@v1.5.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
       - name: Latest release
         run: |
           echo "Latest release: ${{ steps.releaser.outputs.chart_version }}"
           echo "Changed charts: ${{ steps.releaser.outputs.changed_charts }}"
       - name: Log in to the Container registry
-#        if: ${{ steps.releaser.outputs.changed_charts == '' }}
         uses: docker/login-action@v2.1.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push release Docker image
-#        if: ${{ steps.releaser.outputs.changed_charts == '' }}
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
           file: image/Dockerfile
           push: true
-          tags: "${{ env.IMAGE_NAME }}:latest"
+          build-args: |
+            CHROMA_VERSION=${{ matrix.chroma-version }}
+          tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }},${{ env.IMAGE_NAME }}:latest"
