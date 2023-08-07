@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
   pull_request:
     branches:
       - main
@@ -14,7 +15,7 @@ jobs:
         kubernetes-version: [ 1.24.0, 1.27.3 ]
         isPersistent: [ true, false ]
         allowReset: [ true, false ]
-        chroma-version: [ 0.4.3, 0.4.4,0.4.5 ]
+        chroma-version: [ 0.4.3, 0.4.4, 0.4.5 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
