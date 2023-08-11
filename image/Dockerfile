@@ -10,7 +10,8 @@ RUN find /chroma -mindepth 1 -maxdepth 1 ! \( -name 'chromadb' -o -name 'LICENSE
     . /chroma/venv/bin/activate && \
     pip install --force-reinstall --no-cache-dir -r /chroma/requirements.txt && \
     chown -R chroma:chroma /chroma && \
-    apt-get update -qq && apt-get install sqlite3
+    apt-get update -qq && apt-get install sqlite3 sudo -y && \
+    echo 'chroma ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 EXPOSE 8000
 USER chroma
 WORKDIR /chroma

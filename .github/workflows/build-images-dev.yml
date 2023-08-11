@@ -3,7 +3,7 @@ name: Build Images
 on:
   push:
     branches:
-      - main
+      - develop
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
@@ -36,14 +36,14 @@ jobs:
           push: true
           build-args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }},${{ env.IMAGE_NAME }}:latest"
+          tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }}-dev,${{ env.IMAGE_NAME }}:canary"
       - name: Build and push release Docker image
-        if: ${{ env.LATEST_VERSION != matrix.chroma-version }}
         uses: docker/build-push-action@v3.2.0
+        if: ${{ env.LATEST_VERSION != matrix.chroma-version }}
         with:
           context: .
           file: image/Dockerfile
           push: true
           build-args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }},${{ env.IMAGE_NAME }}:latest"
+          tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }}-dev"
