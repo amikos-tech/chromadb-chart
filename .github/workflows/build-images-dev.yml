@@ -14,11 +14,6 @@ jobs:
     strategy:
       matrix:
         chroma-version: [ 0.4.3, 0.4.4, 0.4.5 ]
-        platform:
-          - linux/amd64
-          - linux/arm/v6
-          - linux/arm/v7
-          - linux/arm64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,7 +42,7 @@ jobs:
           context: .
           file: image/Dockerfile
           push: true
-          platform: ${{ matrix.platform }}
+          platform: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
           tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }}-dev,${{ env.IMAGE_NAME }}:canary"
@@ -58,7 +53,7 @@ jobs:
           context: .
           file: image/Dockerfile
           push: true
-          platform: ${{ matrix.platform }}
+          platform: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
           build- args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
