@@ -17,6 +17,6 @@ keywords:
   - ai/ml
 type: application
 
-version: 0.1.11
+version: 0.1.12
 # chromadb version
 appVersion: "0.4.6"
