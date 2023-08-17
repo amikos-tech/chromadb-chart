@@ -1,4 +1,4 @@
-ARG CHROMA_VERSION=0.4.3
+ARG CHROMA_VERSION=0.4.6
 FROM ghcr.io/chroma-core/chroma:${CHROMA_VERSION} as base
 
 COPY ./image/docker_entrypoint.sh /docker_entrypoint.sh
