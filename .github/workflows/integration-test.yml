@@ -31,15 +31,15 @@ jobs:
         uses: medyagh/setup-minikube@latest
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
-      - name: Add helm repo
-        run: |
-          set -e
-          helm repo add chromadb https://amikos-tech.github.io/chromadb-chart/
-          helm repo update
+#      - name: Add helm repo
+#        run: |
+#          set -e
+#          helm repo add chromadb https://amikos-tech.github.io/chromadb-chart/
+#          helm repo update
       - name: Install chromadb
         run: |
           set -e
-          helm install chromadb chromadb/chromadb --set chromadb.isPersistent=true \
+          helm install chromadb ./charts/chromadb-chart --set chromadb.isPersistent=true \
           --set chromadb.allowReset=true \
           --set chromadb.chromaVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
