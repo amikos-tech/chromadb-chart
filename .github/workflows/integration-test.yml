@@ -95,7 +95,7 @@ jobs:
           kubectl wait \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/name=chromadb \
-          --timeout=120s
+          --timeout=300s
       - name: Hearthbeat
         run: |
           set -e
