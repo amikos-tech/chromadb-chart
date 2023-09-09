@@ -57,7 +57,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
-          build- args: |
+          build-args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
           tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }}-dev"
   integration-test:
