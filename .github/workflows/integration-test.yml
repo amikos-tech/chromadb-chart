@@ -88,7 +88,7 @@ jobs:
           set -e
           helm install chromadb ./charts/chromadb-chart --set chromadb.isPersistent=true \
           --set chromadb.allowReset=true \
-          --set chromadb.chromaVersion=${{ matrix.chroma-version }}-dev
+          --set chromadb.apiVersion=${{ matrix.chroma-version }}-dev
       - name: Wait for deployment to be ready
         run: |
           set -e
