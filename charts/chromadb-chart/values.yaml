@@ -7,7 +7,7 @@ replicaCount: 1
 image:
 #  repository: ghcr.io/chroma-core/chroma
   repository: ghcr.io/amikos-tech/chromadb-chart/chroma
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: [ ]
 nameOverride: ""
@@ -93,7 +93,7 @@ startupProbe:
   initialDelaySeconds: 10
 
 chromadb:
-  apiVersion: "0.4.7"
+  apiVersion: "0.4.9"
   allowReset: false
   isPersistent: true
   persistDirectory: /index_data
@@ -107,3 +107,29 @@ chromadb:
   serverHttpPort: 8000
   dataVolumeSize: "1Gi"
   dataVolumeStorageClass: "standard"
+  auth:
+    enabled: true
+    type: "token" # possible values: basic, token
+    basic:
+      username: "chroma"
+      config:
+        env:
+          - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
+            value: "chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider"
+          - name: CHROMA_SERVER_AUTH_PROVIDER
+            value: "chromadb.auth.basic.BasicAuthServerProvider"
+          - name: CHROMA_SERVER_AUTH_CREDENTIALS_FILE
+            value: "/chroma/auth/server.htpasswd"
+    token:
+      headerType: "AUTHORIZATION" #possible values AUTHORIZATION, X_CHROMA_TOKEN
+      config:
+        env:
+          - name: CHROMA_SERVER_AUTH_CREDENTIALS
+            valueFrom:
+              secretKeyRef:
+                name: chromadb-auth
+                key: token
+          - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
+            value: "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider"
+          - name: CHROMA_SERVER_AUTH_PROVIDER
+            value: "chromadb.auth.token.TokenAuthServerProvider"

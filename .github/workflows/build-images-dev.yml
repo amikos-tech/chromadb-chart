@@ -7,13 +7,13 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.4.7"
+  LATEST_VERSION: "0.4.9"
 
 jobs:
   build-images:
     strategy:
       matrix:
-        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7 ]
+        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8, 0.4.9 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

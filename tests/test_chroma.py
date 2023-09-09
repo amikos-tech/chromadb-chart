@@ -30,7 +30,7 @@ sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFuncti
 
 
 def test_chroma():
-    client = chromadb.HttpClient(host="34.135.246.105", port=8000)
+    client = chromadb.HttpClient()
     client.heartbeat()
     # client.reset()
     collection = client.get_or_create_collection("all1-my-documents",

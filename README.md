@@ -71,7 +71,9 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.serverHost`             | string  | `0.0.0.0`                             | The API server host.                                                                                                                                                               |
 | `chromadb.serverHttpPort`         | int     | `8000`                                | The API server port.                                                                                                                                                               |
 | `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
-| `chromadb.dataVolumeStorageClass` | striung | `standard`                            | The storage class                                                                                                                                                                  |
+| `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
+| `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
+| `chromadb.auth.type`              | string  | `token`                                   | Type of auth. Currently "token" and "basic" are supported.                                                                                                                         |
 
 ## Verifying installation
 
@@ -91,8 +93,56 @@ docker push <image:tag>
 For this example we'll set up a Kubernetes cluster using minikube.
 
 ```bash
-minikube start --addons=ingress
+minikube start --addons=ingress -p chroma #create a simple minikube cluster with ingress addon
+minikube profile chroma #select chroma profile in minikube as active for kubectl commands
 ```
+
+## Chroma Authentication
+
+By default, the chart will use a `chromadb-auth` secret in Chroma's namespace to authenticate requests. This secret is
+generated at install time.
+
+### Token Auth
+
+Token Auth works with two types of headers that can be configured via `chromadb.auth.token.tokenHeader`:
+- `AUTHORIZATION` (default) - the clients are expected to pass `Authorization: Brearer <token>` header
+- `X-CHROMA-TOKEN` - the clients are expected to pass `X-Chroma-Token: <token>` header
+
+Get the token:
+    
+```bash
+CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
+CHROMA_HEADER_NAME=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.header}" | base64 --decode)
+```
+
+>Note: The above examples assume `default` namespace is used for Chroma deployment.
+
+Test the token:
+
+```bash
+curl -v http://localhost:8000/api/v1/collections -H "${CHROMA_HEADER_NAME}: ${CHROMA_TOKEN}"
+```
+
+> Note: The above `curl` assumes a localhost forwarding is made to port 8000
+
+### Basic Auth
+
+Get auth credentials:
+
+```bash
+CHROMA_BASIC_AUTH_USERNAME=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.username}" | base64 --decode)
+CHROMA_BASIC_AUTH_PASSWORD=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.password}" | base64 --decode)
+```
+
+>Note: The above examples assume `default` namespace is used for Chroma deployment.
+
+Test the token:
+
+```bash
+curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}" 
+```
+
+> Note: The above `curl` assumes a localhost forwarding is made to port 8000
 
 ## References
 

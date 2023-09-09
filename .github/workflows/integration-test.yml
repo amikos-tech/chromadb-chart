@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         kubernetes-version: [1.23.0, 1.24.0, 1.27.3, v1.28.0-rc.0 ]
-        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7 ]
+        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8, 0.4.9 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
