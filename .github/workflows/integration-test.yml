@@ -44,11 +44,17 @@ jobs:
           --set chromadb.chromaVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
         run: |
-          set -e
           kubectl wait \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/name=chromadb \
           --timeout=180s
+          if [ $? -ne 0 ]; then
+            echo "Deployment not ready"
+            kubectl get pods
+            kubectl get events
+            kubectl logs -l app.kubernetes.io/name=chromadb
+            exit 1
+          fi
       - name: Hearthbeat
         run: |
           set -e
