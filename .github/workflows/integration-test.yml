@@ -44,10 +44,6 @@ jobs:
           --set chromadb.chromaVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
         run: |
-#          kubectl wait \
-#          --for=condition=ready pod \
-#          --selector=app.kubernetes.io/name=chromadb \
-#          --timeout=180s
           sleep 120
           echo "Deployment not ready"
           kubectl get pods
