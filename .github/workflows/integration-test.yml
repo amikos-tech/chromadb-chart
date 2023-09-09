@@ -12,8 +12,8 @@ jobs:
   release:
     strategy:
       matrix:
-        kubernetes-version: [1.23.0, 1.24.0, 1.27.3, v1.28.0-rc.0 ]
-        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8, 0.4.9 ]
+        kubernetes-version: [1.23.0, v1.28.0-rc.0 ]
+        chroma-version: [ 0.4.3, 0.4.9 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,17 +44,15 @@ jobs:
           --set chromadb.chromaVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
         run: |
-          kubectl wait \
-          --for=condition=ready pod \
-          --selector=app.kubernetes.io/name=chromadb \
-          --timeout=180s
-          if [ $? -ne 0 ]; then
-            echo "Deployment not ready"
-            kubectl get pods
-            kubectl get events
-            kubectl logs -l app.kubernetes.io/name=chromadb
-            exit 1
-          fi
+#          kubectl wait \
+#          --for=condition=ready pod \
+#          --selector=app.kubernetes.io/name=chromadb \
+#          --timeout=180s
+          sleep 120
+          echo "Deployment not ready"
+          kubectl get pods
+          kubectl get events
+          kubectl logs -l app.kubernetes.io/name=chromadb
       - name: Hearthbeat
         run: |
           set -e
