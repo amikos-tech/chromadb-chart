@@ -20,3 +20,11 @@
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
+2. To get auth credentials run:
+
+{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode
+{{- end }}
+{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o json | jq -r '(.data.username | @base64d) + ":" + (.data.password | @base64d)'
+{{- end }}
