@@ -92,7 +92,7 @@ jobs:
       - name: Wait for deployment to be ready
         run: |
           set -e
-          sleep 120
+          sleep 300
           kubectl get events
           kubectl logs chromadb-0
           kubectl describe pod chromadb-0
