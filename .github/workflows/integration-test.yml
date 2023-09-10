@@ -94,6 +94,8 @@ jobs:
           set -e
           sleep 120
           kubectl get events
+          kubectl logs chromadb-0
+          kubectl describe pod chromadb-0
       - name: Hearthbeat
         run: |
           set -e
