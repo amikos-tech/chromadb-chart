@@ -7,7 +7,7 @@ data:
   log_config.yaml: |-
     {{- .Files.Get "config/log_config.yaml" | nindent 4 }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+{{- if and (semverCompare ">= 0.4.8" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -24,7 +24,7 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+{{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
 apiVersion: v1
 kind: Secret
 metadata:

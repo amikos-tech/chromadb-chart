@@ -27,7 +27,7 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+      {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
       initContainers:
         - name: generate-htpasswd
           image: httpd:2
@@ -87,12 +87,12 @@ spec:
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
-            {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+            {{- if and (semverCompare ">= 0.4.8" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- toYaml .Values.chromadb.auth.token.config.env | nindent 12 }}
             - name: CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER
               value: {{ .Values.chromadb.auth.token.headerType }}
             {{- end }}
-            {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
             {{- toYaml .Values.chromadb.auth.basic.config.env | nindent 12 }}
             {{- end }}
           ports:
@@ -116,7 +116,7 @@ spec:
             - mountPath: "{{.Values.chromadb.persistDirectory}}"
               name: data
             {{- end }}
-            {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
             - mountPath: /chroma/auth/
               name: htpasswd-volume
             {{- end }}
@@ -139,7 +139,7 @@ spec:
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
       volumes:
-        {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+        {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
         - name: htpasswd-volume
           emptyDir: { }
         {{- end }}

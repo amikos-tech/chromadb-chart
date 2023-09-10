@@ -73,7 +73,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
 | `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
 | `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
-| `chromadb.auth.type`              | string  | `token`                                   | Type of auth. Currently "token" and "basic" are supported.                                                                                                                         |
+| `chromadb.auth.type`              | string  | `token`                                   | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                   |
 
 ## Verifying installation
 
@@ -101,6 +101,12 @@ minikube profile chroma #select chroma profile in minikube as active for kubectl
 
 By default, the chart will use a `chromadb-auth` secret in Chroma's namespace to authenticate requests. This secret is
 generated at install time.
+
+Chroma authentication is supported for the following API versions:
+- basic >= 0.4.7
+- token >= 0.4.8
+
+> Note: Using auth parameters with lower version will result in auth parameters being ignored.
 
 ### Token Auth
 
