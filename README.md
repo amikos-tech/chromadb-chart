@@ -7,7 +7,7 @@ This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using
 - [ ] Security - the ability to secure chroma API with TLS and OIDC <- PoC completed waiting to be merged in the main
   repo
 - [ ] Backup and restore - the ability to back up and restore the index data
-- [ ] Monitoring - the ability to monitor the cluster using Prometheus and Grafana
+- [ ] Observability - the ability to monitor the cluster using Prometheus and Grafana
 
 ## Prerequisites
 
