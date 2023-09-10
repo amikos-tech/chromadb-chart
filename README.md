@@ -99,6 +99,8 @@ minikube profile chroma #select chroma profile in minikube as active for kubectl
 
 ## Chroma Authentication
 
+> Note: Token auth is enabled by default
+
 By default, the chart will use a `chromadb-auth` secret in Chroma's namespace to authenticate requests. This secret is
 generated at install time.
 
