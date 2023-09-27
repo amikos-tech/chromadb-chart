@@ -4,7 +4,6 @@ maintainers:
   - name: Amikos Tech
     email: opensource@amikos.tech
     url: https://amikos.tech
-kubeVersion: ">= 1.23.0 <= 1.28.x || >= 1.28.0-rc.0 <= 1.28.x-rc.x"
 home: "https://github.com/amikos-tech/chromadb-chart"
 sources:
   - "https://github.com/amikos-tech/chromadb-chart"
@@ -17,6 +16,6 @@ keywords:
   - ai/ml
 type: application
 
-version: 0.1.15
+version: 0.1.16
 # chromadb version
-appVersion: "0.4.9"
+appVersion: "0.4.13"
