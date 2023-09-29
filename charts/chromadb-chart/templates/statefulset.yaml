@@ -155,8 +155,6 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         {{- if .Values.chromadb.dataVolumeStorageClass }}
         storageClassName: "{{ .Values.chromadb.dataVolumeStorageClass }}"
-        {{- else }}
-        storageClassName: ""
         {{- end }}
         resources:
           requests:
