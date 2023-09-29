@@ -90,6 +90,7 @@ jobs:
       - name: Install chromadb
         run: |
           set -e
+          sleep 20
           helm install chromadb ./charts/chromadb-chart --set chromadb.isPersistent=true \
           --set chromadb.allowReset=true \
           --set chromadb.apiVersion=${{ matrix.chroma-version }}-dev

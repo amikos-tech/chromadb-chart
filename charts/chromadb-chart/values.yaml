@@ -106,7 +106,7 @@ chromadb:
   serverHost: "0.0.0.0"
   serverHttpPort: 8000
   dataVolumeSize: "1Gi"
-  dataVolumeStorageClass: "standard"
+  dataVolumeStorageClass: null
   auth:
     enabled: true
     type: "token" # possible values: basic, token
