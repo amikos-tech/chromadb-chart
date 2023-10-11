@@ -1,0 +1,37 @@
+name: Lint on PR
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - charts/**
+  workflow_dispatch:
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - name: Lint chart
+        id: helm lint
+        uses: helm/chart-testing-action@v2.1.0
+        with:
+          command: lint
+          chart_path: charts/chromadb-chart
