@@ -1,6 +1,13 @@
 name: Dev Image Build and Integration test
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - charts/**
+      - image/**
+      - tests/**
   pull_request_target:
     branches:
       - main
