@@ -30,7 +30,7 @@ jobs:
           version: v3.4.0
 
       - name: Lint chart
-        id: helm lint
+        id: helm_lint
         uses: helm/chart-testing-action@v2.1.0
         with:
           command: lint
