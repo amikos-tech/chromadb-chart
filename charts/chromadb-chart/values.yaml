@@ -70,6 +70,7 @@ affinity: { }
 podSpec:
   terminationGracePeriodSeconds: 5
   securityContext: { }
+  podAnnotations: { }
   # capabilities:
   #   drop:
   #   - ALL
@@ -112,6 +113,7 @@ chromadb:
     type: "token" # possible values: basic, token
     basic:
       username: "chroma"
+      password: null  # The string used as the auth.basic password. Only used if value not null, otherwise a random string will be generated and used.
       config:
         env:
           - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
@@ -122,6 +124,7 @@ chromadb:
             value: "/chroma/auth/server.htpasswd"
     token:
       headerType: "AUTHORIZATION" #possible values AUTHORIZATION, X_CHROMA_TOKEN
+      value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
       config:
         env:
           - name: CHROMA_SERVER_AUTH_CREDENTIALS

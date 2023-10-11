@@ -15,7 +15,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 type: Opaque
 data:
-  token: {{ randAlphaNum 32 | b64enc | quote }}
+  token: {{ .Values.chromadb.auth.token.value | default ( randAlphaNum 32 ) | b64enc | quote }}
   {{- if eq .Values.chromadb.auth.token.headerType "AUTHORIZATION" }}
   header: {{ "Authorization" | b64enc | quote}}
   {{- end }}
@@ -33,6 +33,6 @@ metadata:
 type: Opaque
 data:
   username: {{ .Values.chromadb.auth.basic.username | b64enc | quote}}
-  password: {{ randAlphaNum 16 | b64enc | quote }}
+  password: {{ .Values.chromadb.auth.basic.password | default ( randAlphaNum 16 ) | b64enc | quote }}
 {{- end }}
 ---
