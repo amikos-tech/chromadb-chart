@@ -3,7 +3,8 @@ name: Release Charts
 on:
   push:
     branches:
-      - main
+      - release
+  workflow_dispatch:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
