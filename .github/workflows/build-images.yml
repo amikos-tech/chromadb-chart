@@ -9,13 +9,28 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.4.14"
+  LATEST_VERSION: "0.4.20"
 
 jobs:
   build-images:
     strategy:
       matrix:
-        chroma-version: [ 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8, 0.4.9, 0.4.10, 0.4.11, 0.4.12, 0.4.13, 0.4.14 ]
+        chroma-version:
+          [
+            0.4.3,
+            0.4.4,
+            0.4.5,
+            0.4.6,
+            0.4.7,
+            0.4.8,
+            0.4.9,
+            0.4.10,
+            0.4.11,
+            0.4.12,
+            0.4.13,
+            0.4.14,
+            0.4.20,
+          ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
