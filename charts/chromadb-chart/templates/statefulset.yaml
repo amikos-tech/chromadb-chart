@@ -8,7 +8,7 @@ metadata:
 spec:
   serviceName: "{{ include "chart.fullname" . }}"
   podManagementPolicy: "Parallel" # This setting means that the StatefulSet controller doesn't block applying changes until the existing Pod is READY.
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "chart.selectorLabels" . | nindent 6 }}
