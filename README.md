@@ -60,7 +60,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                               | Type    | Default                               | Description                                                                                                                                                                        |
 |-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`             | string  | `0.4.6`                               | The ChromaDB version. Supported version `0.4.3` and `0.4.4`                                                                                                                        |
+| `chromadb.apiVersion`             | string  | `0.4.20`                              | The ChromaDB version. Supported version `0.4.3` and `0.4.4`                                                                                                                        |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
 | `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
@@ -73,7 +73,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
 | `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
 | `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
-| `chromadb.auth.type`              | string  | `token`                                   | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                   |
+| `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
 
 ## Verifying installation
 
@@ -105,6 +105,7 @@ By default, the chart will use a `chromadb-auth` secret in Chroma's namespace to
 generated at install time.
 
 Chroma authentication is supported for the following API versions:
+
 - basic >= 0.4.7
 - token >= 0.4.8
 
@@ -113,17 +114,18 @@ Chroma authentication is supported for the following API versions:
 ### Token Auth
 
 Token Auth works with two types of headers that can be configured via `chromadb.auth.token.tokenHeader`:
+
 - `AUTHORIZATION` (default) - the clients are expected to pass `Authorization: Brearer <token>` header
 - `X-CHROMA-TOKEN` - the clients are expected to pass `X-Chroma-Token: <token>` header
 
 Get the token:
-    
+
 ```bash
 CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
 CHROMA_HEADER_NAME=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.header}" | base64 --decode)
 ```
 
->Note: The above examples assume `default` namespace is used for Chroma deployment.
+> Note: The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
 
@@ -142,7 +144,7 @@ CHROMA_BASIC_AUTH_USERNAME=$(kubectl --namespace default get secret chromadb-aut
 CHROMA_BASIC_AUTH_PASSWORD=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.password}" | base64 --decode)
 ```
 
->Note: The above examples assume `default` namespace is used for Chroma deployment.
+> Note: The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
 
