@@ -154,6 +154,15 @@ curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAM
 
 > Note: The above `curl` assumes a localhost forwarding is made to port 8000
 
+## Building Optimized ChromaDB Image
+
+For maximum compatability the baseline ChromaDB image comes with a binary install of `hnswlib`, which is not optimized for the CPU architectures with AVX
+support. To build an optimized image you can use the `image/Dockerfile` with `--build-arg REBUILD_HNSWLIB=true` flag.
+
+```bash
+docker build --no-cache -t <image:tag> -f image/Dockerfile --build-arg REBUILD_HNSWLIB=true .
+```
+
 ## References
 
 - Helm install: https://helm.sh/docs/intro/install/
