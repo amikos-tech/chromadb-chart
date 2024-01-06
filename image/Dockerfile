@@ -7,11 +7,11 @@ RUN find /chroma -mindepth 1 -maxdepth 1 ! \( -name 'chromadb' -o -name 'LICENSE
     groupadd chroma && \
     useradd -g chroma -d /chroma chroma && \
     chown -R chroma:chroma /chroma && \
-    apt-get update -qq && apt-get install sqlite3 sudo -y && \
+    apt-get update -qq && apt-get install sqlite3 sudo cmake autoconf -y && \
     echo 'chroma ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     apt-get clean && \
     chown -R chroma:chroma /docker_entrypoint.sh
-RUN if [ "$REBUILD_HNSWLIB" = "true" ]; then pip install --no-binary :all: --force-reinstall --no-cache-dir --prefix="/install" chroma-hnswlib; fi
+RUN if [ "$REBUILD_HNSWLIB" = "true" ]; then pip install --no-binary :all: --force-reinstall --no-cache-dir --prefix="/usr/local" chroma-hnswlib; fi
 EXPOSE 8000
 USER chroma
 
