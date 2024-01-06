@@ -137,3 +137,8 @@ jobs:
           set -e
           kubectl get svc -A
           curl $(minikube service chromadb --url)/api/v1
+      - name: Debug Pods
+        if: always()
+        run: |
+          set -e
+          kubectl get pods -A
