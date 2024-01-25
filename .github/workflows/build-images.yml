@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.4.20"
+  LATEST_VERSION: "0.4.21"
 
 jobs:
   build-images:
@@ -35,6 +35,7 @@ jobs:
             0.4.18,
             0.4.19,
             0.4.20,
+            0.4.21,
           ]
     runs-on: ubuntu-latest
     steps:
