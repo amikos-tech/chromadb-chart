@@ -87,3 +87,6 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+
+# macOS temporary files
+.DS_Store

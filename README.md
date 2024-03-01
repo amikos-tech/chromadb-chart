@@ -60,7 +60,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                               | Type    | Default                               | Description                                                                                                                                                                        |
 |-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`             | string  | `0.4.20`                              | The ChromaDB version. Supported version `0.4.3` and `0.4.4`                                                                                                                        |
+| `chromadb.apiVersion`             | string  | `0.4.24`                              | The ChromaDB version. Supported version `0.4.3` - `0.4.24`                                                                                                                         |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
 | `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
@@ -149,7 +149,7 @@ CHROMA_BASIC_AUTH_PASSWORD=$(kubectl --namespace default get secret chromadb-aut
 Test the token:
 
 ```bash
-curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}" 
+curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}"
 ```
 
 > Note: The above `curl` assumes a localhost forwarding is made to port 8000
