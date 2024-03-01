@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.4.21"
+  LATEST_VERSION: "0.4.24"
 
 jobs:
   build-images:
@@ -17,25 +17,14 @@ jobs:
       matrix:
         chroma-version:
           [
-            0.4.3,
-            0.4.4,
-            0.4.5,
-            0.4.6,
-            0.4.7,
-            0.4.8,
-            0.4.9,
-            0.4.10,
-            0.4.11,
-            0.4.12,
-            0.4.13,
-            0.4.14,
-            0.4.15,
-            0.4.16,
-            0.4.17,
-            0.4.18,
-            0.4.19,
-            0.4.20,
+            0.4.7, #auth introduced
+            0.4.8, #auth introduced
+            0.4.10, #pre-flight checks introduced
+            0.4.16, #multi-tenancy introduced
             0.4.21,
+            0.4.22,
+            0.4.23,
+            0.4.24,
           ]
     runs-on: ubuntu-latest
     steps:
