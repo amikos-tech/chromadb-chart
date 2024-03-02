@@ -1,4 +1,4 @@
-name: Manually Build Image
+name: Build Image - Manual
 
 on:
   workflow_dispatch:
@@ -27,6 +27,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
+  DH_IMAGE_NAME: "amikos/chroma"
 
 jobs:
   build-images:
@@ -61,7 +62,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}"
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}
       - name: Build and push release Docker image
         if: ${{ github.event.inputs.latest-version == 'true' && github.event.inputs.ghcr-release == 'true' }}
         uses: docker/build-push-action@v3.2.0
@@ -72,7 +74,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}, ${env.IMAGE_NAME}:latest"
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}
+            ${env.IMAGE_NAME}}:latest
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -89,7 +93,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}"
+          tags: | 
+            ${{ env.DH_IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}
       - name: Build and push release Docker image
         if: ${{ github.event.inputs.latest-version == 'true' && github.event.inputs.docker-release == 'true' }}
         uses: docker/build-push-action@v3.2.0
@@ -100,5 +105,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}, ${env.IMAGE_NAME}:latest"
+          tags: |
+            ${{ env.DH_IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}
+            ${ env.DH_IMAGE_NAME }}:latest
 
