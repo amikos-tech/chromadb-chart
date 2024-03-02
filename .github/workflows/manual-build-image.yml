@@ -63,7 +63,7 @@ jobs:
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
           tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}"
       - name: Build and push release Docker image
-        if: ${{ github.event.inputs.latest-version == true && github.event.inputs.ghcr-release == true }}
+        if: ${{ github.event.inputs.latest-version == 'true' && github.event.inputs.ghcr-release == 'true' }}
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
@@ -80,7 +80,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push release Docker image
-        if: ${{ github.event.inputs.docker-release == true }}
+        if: ${{ github.event.inputs.docker-release == 'true' }}
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
@@ -91,7 +91,7 @@ jobs:
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
           tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}"
       - name: Build and push release Docker image
-        if: ${{ github.event.inputs.latest-version == true && github.event.inputs.docker-release == true }}
+        if: ${{ github.event.inputs.latest-version == 'true' && github.event.inputs.docker-release == 'true' }}
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
