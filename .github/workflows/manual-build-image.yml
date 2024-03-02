@@ -10,17 +10,17 @@ on:
         type: string
       latest-version:
         description: "Set the latest version tag to this version"
-        required: true
+        required: false
         default: false
         type: boolean
       ghcr-release:
         description: "Push to GHCR"
-        required: true
+        required: false
         default: true
         type: boolean
       docker-release:
         description: "Push to Docker hub"
-        required: true
+        required: false
         default: true
         type: boolean
 
