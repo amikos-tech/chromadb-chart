@@ -8,6 +8,11 @@ on:
         required: true
         default: "0.4.24"
         type: string
+      latest-version:
+        description: "Latest Chroma version"
+        required: true
+        default: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -45,5 +50,16 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
-          tags: "${{ env.IMAGE_NAME }}:${{ event. }}
+          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}"
+      - name: Build and push release Docker image
+        if: ${{ github.event.inputs.latest-version == true }}
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          file: image/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            CHROMA_VERSION=${{ github.event.inputs.chroma-version }}
+          tags: "${{ env.IMAGE_NAME }}:${{ github.event.inputs.chroma-version }}, ${env.IMAGE_NAME}:latest"
 
