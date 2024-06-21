@@ -57,6 +57,8 @@ spec:
             - mountPath: /chroma/auth/
               name: htpasswd-volume
       {{- end }}
+      tolerations:
+       {{- toYaml .Values.tolerations | nindent 8 }}
       containers:
         - name: "chromadb"
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
