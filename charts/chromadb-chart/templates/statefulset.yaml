@@ -58,7 +58,7 @@ spec:
               name: htpasswd-volume
       {{- end }}
       tolerations:
-       {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- toYaml .Values.tolerations | nindent 8 }}
       affinity:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
