@@ -113,25 +113,6 @@ chromadb:
     basic:
       username: "chroma"
       password: null  # The string used as the auth.basic password. Only used if value not null, otherwise a random string will be generated and used.
-      config:
-        env:
-          - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
-            value: "chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider"
-          - name: CHROMA_SERVER_AUTH_PROVIDER
-            value: "chromadb.auth.basic.BasicAuthServerProvider"
-          - name: CHROMA_SERVER_AUTH_CREDENTIALS_FILE
-            value: "/chroma/auth/server.htpasswd"
     token:
-      headerType: "AUTHORIZATION" #possible values AUTHORIZATION, X_CHROMA_TOKEN
+      headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
-      config:
-        env:
-          - name: CHROMA_SERVER_AUTH_CREDENTIALS
-            valueFrom:
-              secretKeyRef:
-                name: chromadb-auth
-                key: token
-          - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
-            value: "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider"
-          - name: CHROMA_SERVER_AUTH_PROVIDER
-            value: "chromadb.auth.token.TokenAuthServerProvider"
