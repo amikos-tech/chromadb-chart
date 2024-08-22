@@ -65,7 +65,7 @@ spec:
         - name: "chromadb"
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-          {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token")}}
+          {{- if .Values.chromadb.auth.enabled}}
           envFrom:
             - configMapRef:
                 {{- if (eq .Values.chromadb.auth.type "token") }}
@@ -108,10 +108,6 @@ spec:
                 secretKeyRef:
                   name: chromadb-auth
                   key: token
-            {{- end }}
-            {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
-            - name: CHROMA_SERVER_AUTH_CREDENTIALS_FILE
-              value: "/chroma/auth/server.htpasswd"
             {{- end }}
           ports:
             - containerPort: {{ .Values.chromadb.serverHttpPort }}
