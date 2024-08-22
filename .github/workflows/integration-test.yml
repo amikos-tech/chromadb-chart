@@ -20,7 +20,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.4.24"
+  LATEST_VERSION: "0.5.5"
 jobs:
   build-images:
     strategy:
@@ -30,10 +30,8 @@ jobs:
             0.4.9,
             0.4.10, #pre-flight checks introduced
             0.4.16, #multi-tenancy introduced
-            0.4.21,
-            0.4.22,
-            0.4.23,
             0.4.24,
+            0.5.5,
           ]
     runs-on: ubuntu-latest
     steps:
@@ -89,10 +87,8 @@ jobs:
             0.4.9,
             0.4.10, #pre-flight checks introduced
             0.4.16, #multi-tenancy introduced
-            0.4.21,
-            0.4.22,
-            0.4.23,
             0.4.24,
+            0.5.5,
           ]
     runs-on: ubuntu-latest
     steps:
