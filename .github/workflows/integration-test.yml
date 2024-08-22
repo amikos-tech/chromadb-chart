@@ -107,10 +107,10 @@ jobs:
         uses: medyagh/setup-minikube@latest
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
-      - name: Build image from Dockerfile
-        run: |
-          eval $(minikube docker-env)
-          docker build -t ghcr.io/amikos-tech/chromadb-chart/chroma:${{ matrix.chroma-version }} --build-arg CHROMA_VERSION=${{ matrix.chroma-version }} -f image/Dockerfile .
+#      - name: Build image from Dockerfile
+#        run: |
+#          eval $(minikube docker-env)
+#          docker build -t ghcr.io/amikos-tech/chromadb-chart/chroma:${{ matrix.chroma-version }} --build-arg CHROMA_VERSION=${{ matrix.chroma-version }} -f image/Dockerfile .
       - name: Install chromadb
         run: |
           set -e
