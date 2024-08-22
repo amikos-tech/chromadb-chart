@@ -65,6 +65,16 @@ spec:
         - name: "chromadb"
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token")}}
+          envFrom:
+            - configMapRef:
+                {{- if (eq .Values.chromadb.auth.type "token") }}
+                name: {{ include "chart.fullname" . }}-token-auth-config
+                {{- end }}
+                {{- if (eq .Values.chromadb.auth.type "basic") }}
+                name: {{ include "chart.fullname" . }}-basic-auth-config
+                {{- end }}
+          {{- end }}
           env:
             - name: POD_NAME
               valueFrom:
@@ -83,14 +93,6 @@ spec:
             {{- if .Values.chromadb.corsAllowOrigins }}
             - name: CHROMA_SERVER_CORS_ALLOW_ORIGINS
               value: '{{ .Values.chromadb.corsAllowOrigins | join "\",\"" | printf "[\"%s\"]"}}'
-            {{- end }}
-            {{- if .Values.chromadb.apiImpl }}
-            - name: CHROMA_API_IMPL
-              value: "{{ .Values.chromadb.apiImpl }}"
-            {{- end }}
-            {{- if .Values.chromadb.serverHost }}
-            - name: CHROMA_SERVER_HOST
-              value: "{{ .Values.chromadb.serverHost }}"
             {{- end }}
             {{- if .Values.chromadb.serverHttpPort }}
             - name: CHROMA_SERVER_HTTP_PORT
@@ -169,5 +171,3 @@ spec:
           requests:
             storage: {{ .Values.chromadb.dataVolumeSize }}
   {{- end }}
-
-

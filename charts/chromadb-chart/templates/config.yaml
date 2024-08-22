@@ -36,3 +36,32 @@ data:
   password: {{ .Values.chromadb.auth.basic.password | default ( randAlphaNum 16 ) | b64enc | quote }}
 {{- end }}
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-basic-auth-config
+  namespace: {{ .Release.Namespace }}
+data:
+{{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+  CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: "chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider"
+  CHROMA_SERVER_AUTH_PROVIDER: "chromadb.auth.basic.BasicAuthServerProvider"
+  CHROMA_SERVER_AUTH_CREDENTIALS_FILE: "/chroma/auth/server.htpasswd"
+{{- else if and  (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion) }}
+  CHROMA_SERVER_AUTHN_CREDENTIALS_FILE: "/chroma/auth/server.htpasswd"
+  CHROMA_SERVER_AUTHN_PROVIDER: "chromadb.auth.basic_authn.BasicAuthenticationServerProvider"
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-token-auth-config
+  namespace: {{ .Release.Namespace }}
+data:
+{{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+  CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider"
+  CHROMA_SERVER_AUTH_PROVIDER: "chromadb.auth.token.TokenAuthServerProvider"
+{{- else if (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion)}}
+  CHROMA_SERVER_AUTHN_PROVIDER: "chromadb.auth.token_authn.TokenAuthenticationServerProvider"
+  CHROMA_AUTH_TOKEN_TRANSPORT_HEADER: {{ .Values.chromadb.auth.token.headerType }}
+{{- end }}
+---
