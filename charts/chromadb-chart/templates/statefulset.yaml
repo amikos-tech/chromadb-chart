@@ -98,13 +98,20 @@ spec:
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
-            {{- if and (semverCompare ">= 0.4.8" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
-            {{- toYaml .Values.chromadb.auth.token.config.env | nindent 12 }}
-            - name: CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER
-              value: {{ .Values.chromadb.auth.token.headerType }}
+            {{- if and  .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+            - name: CHROMA_SERVER_AUTH_CREDENTIALS
+            {{- else if (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion)}}
+            - name: CHROMA_SERVER_AUTHN_CREDENTIALS
             {{- end }}
-            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
-            {{- toYaml .Values.chromadb.auth.basic.config.env | nindent 12 }}
+              valueFrom:
+                secretKeyRef:
+                  name: chromadb-auth
+                  key: token
+            {{- end }}
+            {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            - name: CHROMA_SERVER_AUTH_CREDENTIALS_FILE
+              value: "/chroma/auth/server.htpasswd"
             {{- end }}
           ports:
             - containerPort: {{ .Values.chromadb.serverHttpPort }}
