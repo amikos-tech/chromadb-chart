@@ -86,7 +86,7 @@ jobs:
           [
             0.4.9,
             0.4.10, #pre-flight checks introduced
-            0.4.16, #multi-tenancy introduced
+            0.4.17, #multi-tenancy introduced
             0.4.24,
             0.5.5,
           ]
