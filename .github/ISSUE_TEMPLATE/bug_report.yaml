@@ -1,4 +1,4 @@
-name: Bug Report
+name: 🐞 Bug Report
 description: File a bug report with ChromaDB Chart
 title: "[Bug]: "
 labels: ["bug", "triage"]
@@ -9,22 +9,14 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
-  - type: textarea
-    id: what-happened
-    attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-#       value: "A bug happened!"
-    validations:
-      required: true
   - type: dropdown
     id: chroma-version
     attributes:
       label: ChromaDB Version
       description: What is your chromaDB version?
       options:
-        - 0.4.3
+        - 0.4.x
+        - 0.5.x
     validations:
       required: true
   - type: dropdown
@@ -37,6 +29,18 @@ body:
         - 1.25.x
         - 1.26.x
         - 1.27.x
+        - 1.28.x
+        - 1.29.x
+        - 1.30.x
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what happened and a way to reproduce it (also specify chart version, chroma API version and kubernetes version)
+#       value: "A bug happened!"
     validations:
       required: true
   - type: textarea
@@ -44,7 +48,7 @@ body:
     attributes:
       label: Environment details
       description: Tell us about your environment setup.
-      placeholder: On-prem k3s, GKE, EKS, etc.
+      placeholder: On-prem k3s/minikube/kind, GKE, EKS, etc.
     validations:
       required: true
   - type: textarea
