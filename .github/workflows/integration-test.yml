@@ -129,3 +129,9 @@ jobs:
           kubectl get pods -A
           kubectl get svc -A
           helm test chromadb
+      - name: Debug
+        if: failure()
+        run: |
+          kubectl get pods -A
+          kubectl get svc -A
+          kubectl logs --selector=app.kubernetes.io/name=chromadb --previous 
