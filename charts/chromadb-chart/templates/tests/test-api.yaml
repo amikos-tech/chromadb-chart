@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ include "chart.fullname" . }}-test-connection"
+  name: "{{ include "chart.fullname" . }}-test-api"
   labels:
     {{- include "chart.labels" . | nindent 4 }}
   annotations:
@@ -18,7 +18,7 @@ spec:
           command: ['curl']
           args:
             - '-v'
-            - 'http://{{ include "chart.fullname" . }}:{{ .Values.chromadb.serverHttpPort }}/api/v1/hearbeat'
+            - 'http://{{ include "chart.fullname" . }}:{{ .Values.chromadb.serverHttpPort }}/api/v1/collections'
             {{- if eq .Values.chromadb.auth.type "token" }}
             {{- $existingConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace (include "chart.fullname" . | printf "%s-token-auth-config")) }}
             {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }} # TODO support existing secret
