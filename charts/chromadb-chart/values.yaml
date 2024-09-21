@@ -98,7 +98,7 @@ chromadb:
   allowReset: false
   isPersistent: true
   persistDirectory: /index_data
-  logConfigFileLocation: config/log_config.yaml
+  logConfigFileLocation: /chroma/log_config.yaml
   anonymizedTelemetry: false
   corsAllowOrigins:
     - "*" # TODO this might be dangerous
