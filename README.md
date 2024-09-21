@@ -74,7 +74,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
 | `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
 | `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
-| `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an existing secret with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
+| `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
 | `image.repository`                | string  | `ghcr.io/chroma-core/chroma`          | The repository of the image.                                                                                                                                                       |
 
 ## Verifying installation
