@@ -110,6 +110,7 @@ chromadb:
   auth:
     enabled: true
     type: "token" # possible values: basic, token
+    existingSecret: ""
     basic:
       username: "chroma"
       password: null  # The string used as the auth.basic password. Only used if value not null, otherwise a random string will be generated and used.

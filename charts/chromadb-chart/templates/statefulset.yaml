@@ -40,12 +40,12 @@ spec:
             - name: CHROMA_BASIC_USER
               valueFrom:
                 secretKeyRef:
-                  name: chromadb-auth
+                  name: {{ .Values.chromadb.auth.existingSecret | default "chromadb-auth" }}
                   key: username
             - name: CHROMA_BASIC_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: chromadb-auth
+                  name: {{ .Values.chromadb.auth.existingSecret | default "chromadb-auth" }}
                   key: password
           command:
             - sh
@@ -110,7 +110,7 @@ spec:
             {{- end }}
               valueFrom:
                 secretKeyRef:
-                  name: chromadb-auth
+                  name: {{ .Values.chromadb.auth.existingSecret | default "chromadb-auth" }}
                   key: token
             {{- end }}
           ports:
