@@ -190,6 +190,19 @@ export CHROMA_HEADER_NAME=$(kubectl --namespace default get configmap chroma-chr
 curl -v http://localhost:8000/api/v1/collections -H "${CHROMA_HEADER_NAME}: Bearer ${CHROMA_TOKEN}"
 ```
 
+## Using the chart as a dependency
+
+To use the chart as a dependency, add the following to your `Chart.yaml` file:
+
+```yaml
+dependencies:
+  - name: chromadb
+    version: 0.1.19
+    repository: "https://amikos-tech.github.io/chromadb-chart/"
+```
+
+Then, run `helm dependency update` to install the chart.
+
 
 ## References
 
