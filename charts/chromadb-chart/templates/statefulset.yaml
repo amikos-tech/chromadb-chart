@@ -35,7 +35,7 @@ spec:
       {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
       initContainers:
         - name: generate-htpasswd
-          image: docker.io/httpd:2
+          image: {{ .Values.initImage }}
           env:
             - name: CHROMA_BASIC_USER
               valueFrom:
