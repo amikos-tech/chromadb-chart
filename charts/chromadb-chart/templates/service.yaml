@@ -11,5 +11,6 @@ spec:
       targetPort: {{ .Values.chromadb.serverHttpPort }}
       protocol: TCP
       name: http
+      nodePort: {{ .Values.service.nodePort }}
   selector:
     {{- include "chart.selectorLabels" . | nindent 4 }}

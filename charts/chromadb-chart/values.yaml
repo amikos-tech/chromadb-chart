@@ -25,6 +25,7 @@ serviceAccount:
 
 service:
   type: NodePort #use ClusterIP for internal only and LoadBalancer for external
+  nodePort: null
 
 ingress:
   enabled: false
