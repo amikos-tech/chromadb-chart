@@ -6,7 +6,7 @@ on:
       chroma-version:
         description: "Chroma version"
         required: true
-        default: "0.5.5"
+        default: "0.5.23"
         type: string
       latest-version:
         description: "Set the latest version tag to this version"
