@@ -96,9 +96,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v4.2.0
+        uses: azure/setup-helm@v4.2.0
 
       - name: start minikube
         id: minikube
