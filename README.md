@@ -108,6 +108,7 @@ generated at install time.
 
 Chroma authentication is supported for the following API versions:
 
+
 - basic >= 0.4.7
 - token >= 0.4.8
 
@@ -117,16 +118,19 @@ Chroma authentication is supported for the following API versions:
 
 Token Auth works with two types of headers that can be configured via `chromadb.auth.token.tokenHeader`:
 
+
 - `AUTHORIZATION` (default) - the clients are expected to pass `Authorization: Brearer <token>` header
 - `X-CHROMA-TOKEN` - the clients are expected to pass `X-Chroma-Token: <token>` header
 
 Get the token:
+
 
 ```bash
 export CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
 export CHROMA_HEADER_NAME=$(kubectl --namespace default get configmap chroma-chromadb-token-auth-config -o jsonpath="{.data.CHROMA_AUTH_TOKEN_TRANSPORT_HEADER}")
 ```
 
+> Note: The above examples assume `default` namespace is used for Chroma deployment.
 > Note: The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
@@ -148,10 +152,12 @@ CHROMA_BASIC_AUTH_PASSWORD=$(kubectl --namespace default get secret chromadb-aut
 ```
 
 > Note: The above examples assume `default` namespace is used for Chroma deployment.
+> Note: The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
 
 ```bash
+curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}"
 curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}"
 ```
 

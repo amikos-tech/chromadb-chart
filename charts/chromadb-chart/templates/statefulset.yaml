@@ -9,6 +9,7 @@ spec:
   serviceName: "{{ include "chart.fullname" . }}"
   podManagementPolicy: "Parallel" # This setting means that the StatefulSet controller doesn't block applying changes until the existing Pod is READY.
   replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "chart.selectorLabels" . | nindent 6 }}
@@ -61,10 +62,24 @@ spec:
         {{- toYaml .Values.tolerations | nindent 8 }}
       affinity:
         {{- toYaml .Values.affinity | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          {{- if .Values.chromadb.auth.enabled}}
+          envFrom:
+            - configMapRef:
+                {{- if (eq .Values.chromadb.auth.type "token") }}
+                name: {{ include "chart.fullname" . }}-token-auth-config
+                {{- end }}
+                {{- if (eq .Values.chromadb.auth.type "basic") }}
+                name: {{ include "chart.fullname" . }}-basic-auth-config
+                {{- end }}
+          {{- end }}
           {{- if .Values.chromadb.auth.enabled}}
           envFrom:
             - configMapRef:

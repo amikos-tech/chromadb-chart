@@ -64,3 +64,4 @@ jobs:
           build-args: |
             CHROMA_VERSION=${{ matrix.chroma-version }}
           tags: "${{ env.IMAGE_NAME }}:${{ matrix.chroma-version }}"
+
