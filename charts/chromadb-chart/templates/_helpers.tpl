@@ -60,3 +60,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Get the chroma api version
+*/}}
+{{- define "chromadb.apiVersion" -}}
+{{- if .Values.chromadb.apiVersion }}
+{{- .Values.chromadb.apiVersion }}
+{{- else }}
+{{- .Chart.AppVersion }}
+{{- end }}
+{{- end }}

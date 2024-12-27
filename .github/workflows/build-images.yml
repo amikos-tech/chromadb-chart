@@ -17,12 +17,9 @@ jobs:
       matrix:
         chroma-version:
           [
-            0.4.7, #auth introduced
-            0.4.8, #auth introduced
-            0.4.10, #pre-flight checks introduced
+            0.4.9,
             0.4.24,
-            0.5.0,
-            0.5.5,
+            0.5.23,
           ]
     runs-on: ubuntu-latest
     steps:

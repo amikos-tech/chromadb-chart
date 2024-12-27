@@ -32,6 +32,8 @@ body:
         - 1.28.x
         - 1.29.x
         - 1.30.x
+        - 1.31.x
+        - 1.32.x
     validations:
       required: true
   - type: textarea

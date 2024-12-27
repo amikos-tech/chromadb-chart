@@ -32,7 +32,7 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+      {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
       initContainers:
         - name: generate-htpasswd
           image: {{ .Values.initImage }}
@@ -103,9 +103,9 @@ spec:
               value: "{{ .Values.chromadb.logConfigFileLocation }}"
             {{- end }}
             {{- if and  .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
-            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+            {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
             - name: CHROMA_SERVER_AUTH_CREDENTIALS
-            {{- else if (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion)}}
+            {{- else if (semverCompare ">= 0.5.0" (include "chromadb.apiVersion" .))}}
             - name: CHROMA_SERVER_AUTHN_CREDENTIALS
             {{- end }}
               valueFrom:
@@ -134,7 +134,7 @@ spec:
             - mountPath: "{{.Values.chromadb.persistDirectory}}"
               name: data
             {{- end }}
-            {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
             - mountPath: /chroma/auth/
               name: htpasswd-volume
             {{- end }}
@@ -157,7 +157,7 @@ spec:
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
       volumes:
-        {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+        {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
         - name: htpasswd-volume
           emptyDir: { }
         {{- end }}

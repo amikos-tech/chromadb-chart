@@ -35,7 +35,7 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
+{{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -71,11 +71,11 @@ metadata:
 data:
   {{- $existingConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace (include "chart.fullname" . | printf "%s-basic-auth-config")) }}
   {{- $newData := dict }}
-  {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+  {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER" "chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider" }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_PROVIDER" "chromadb.auth.basic.BasicAuthServerProvider" }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_CREDENTIALS_FILE" "/chroma/auth/server.htpasswd" }}
-  {{- else if (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion) }}
+  {{- else if (semverCompare ">= 0.5.0" (include "chromadb.apiVersion" .)) }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTHN_CREDENTIALS_FILE" "/chroma/auth/server.htpasswd" }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTHN_PROVIDER" "chromadb.auth.basic_authn.BasicAuthenticationServerProvider" }}
   {{- end }}
@@ -103,10 +103,10 @@ metadata:
 data:
   {{- $existingConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace (include "chart.fullname" . | printf "%s-token-auth-config")) }}
   {{- $newData := dict }}
-  {{- if and (semverCompare ">= 0.4.7" .Values.chromadb.apiVersion) (semverCompare "< 0.5.0" .Values.chromadb.apiVersion) }}
+  {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER" "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider" }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_PROVIDER" "chromadb.auth.token.TokenAuthServerProvider" }}
-  {{- else if (semverCompare ">= 0.5.0" .Values.chromadb.apiVersion) }}
+  {{- else if (semverCompare ">= 0.5.0" (include "chromadb.apiVersion" .)) }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTHN_PROVIDER" "chromadb.auth.token_authn.TokenAuthenticationServerProvider" }}
   {{- $_ := set $newData "CHROMA_AUTH_TOKEN_TRANSPORT_HEADER" .Values.chromadb.auth.token.headerType }}
   {{- end }}
