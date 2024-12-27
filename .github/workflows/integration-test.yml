@@ -20,7 +20,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "ghcr.io/amikos-tech/chromadb-chart/chroma"
-  LATEST_VERSION: "0.5.5"
+  LATEST_VERSION: "0.5.23"
 jobs:
 #  build-images:
 #    strategy:
@@ -81,12 +81,12 @@ jobs:
 #    needs: build-images
     strategy:
       matrix:
-        kubernetes-version: [1.23.0, 1.30.0]
+        kubernetes-version: [1.23.0, 1.31.0]
         chroma-version:
           [
             0.4.9,
             0.4.24,
-            0.5.7,
+            0.5.23,
           ]
     runs-on: ubuntu-latest
     steps:
@@ -98,7 +98,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
-          version: v3.4.0
+          version: v4.2.0
 
       - name: start minikube
         id: minikube
