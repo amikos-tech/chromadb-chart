@@ -175,7 +175,6 @@ jobs:
           --set chromadb.isPersistent=true \
           --set chromadb.allowReset=true \
           --set chromadb.apiVersion=${{ matrix.chroma-version }}
-          --set chromadb.apiVersion=${{ matrix.chroma-version }}
       - name: Wait for deployment to be ready
         run: |
           kubectl wait \
