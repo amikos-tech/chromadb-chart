@@ -1,30 +1,76 @@
-1. Get the application URL by running these commands:
-{{- if .Values.ingress.enabled }}
-{{- range $host := .Values.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
-  {{- end }}
-{{- end }}
-{{- else if contains "NodePort" .Values.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "chart.fullname" . }})
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
-{{- else if contains "LoadBalancer" .Values.service.type }}
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "chart.fullname" . }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.service.port }}
-{{- else if contains "ClusterIP" .Values.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
-  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  echo "Visit http://127.0.0.1:8080 to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
-{{- end }}
-2. To get auth credentials run:
+Congratulations you have successfully installed Chroma version {{.Values.chromadb.apiVersion }}, Chart version {{ .Chart.Version }}!
+
+Visit the official Chroma documentation for more information: https://docs.trychroma.com/. 
+For tips and recipes, check out the Chroma cookbook: https://cookbook.chromadb.dev/.
+
+You can access your Chroma instance by forwarding the port to your local machine:
+
+```bash
+kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "chart.fullname" . }} {{ .Values.chromadb.serverHttpPort }}:{{ .Values.chromadb.serverHttpPort }}
+```
+
+{{- if .Values.chromadb.auth.enabled }}
+
+{{ .Values.chromadb.auth.type }} Authentication is enabled.
 
 {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
-kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode
+It uses {{ .Values.chromadb.auth.token.headerType }} header for token.
+To get your token run:
+
+
+
+Python:
+
+{{- if eq .Values.chromadb.auth.type "token" }}
+
+Get the token from the secret:
+
+```bash
+export CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
+```
+
+```python
+import os
+import chromadb
+from chromadb.config import Settings
+
+client = chromadb.HttpClient(
+  settings=Settings(
+      chroma_client_auth_provider="chromadb.auth.token_authn.TokenAuthClientProvider",
+      chroma_client_auth_credentials=os.environ.get("CHROMA_TOKEN")
+  )
+)
+
+# if everything is correctly configured the below should list all collections
+client.list_collections()
+```
 {{- end }}
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
-kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o json | jq -r '(.data.username | @base64d) + ":" + (.data.password | @base64d)'
+{{- if eq .Values.chromadb.auth.type "basic" }}
+
+Get the username and password from the secret:
+
+```bash
+export CHROMA_USERNAME=$(kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o json | jq -r '(.data.username | @base64d)')
+export CHROMA_PASSWORD=$(kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o json | jq -r '(.data.password | @base64d)')
+```
+
+```python
+import chromadb
+from chromadb.config import Settings
+
+client = chromadb.HttpClient(
+  settings=Settings(
+      chroma_client_auth_provider="chromadb.auth.basic_authn.BasicAuthClientProvider",
+      chroma_client_auth_credentials="<username>:<password>")
+)
+
+# if everything is correctly configured the below should list all collections
+client.list_collections()
+```
+{{- end }}
+
+> Note: Visit https://cookbook.chromadb.dev/security/auth/ for more information on authentication.
+
+{{- end }}
+
 {{- end }}
