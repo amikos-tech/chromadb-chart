@@ -113,10 +113,8 @@ spec:
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
-            {{- if .Values.chromadb.logConfigFileLocation }}
             - name: CHROMA_LOG_CONFIG
-              value: "{{ .Values.chromadb.logConfigFileLocation }}"
-            {{- end }}
+              value: "chromadb/log_config.yml"
             {{- if and  .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
             - name: CHROMA_SERVER_AUTH_CREDENTIALS

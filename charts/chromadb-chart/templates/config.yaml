@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   log_config.yaml: |-
-    {{- .Files.Get "config/log_config.yaml" | nindent 4 }}
+    {{- .Files.Get .Values.chromadb.logConfigFileLocation | nindent 4 }}
 ---
 {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
