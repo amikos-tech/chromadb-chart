@@ -104,6 +104,10 @@ chromadb:
   isPersistent: true
   persistDirectory: /index_data
   logConfigFileLocation: /chroma/log_config.yaml
+  logging:
+    root: "INFO"
+    chromadb: "DEBUG"
+    uvicorn: "INFO"
   anonymizedTelemetry: false
   corsAllowOrigins:
     - "*" # TODO this might be dangerous
