@@ -1,16 +1,19 @@
-# ChromaDB Vector Store Kubernetes Chart
+# Kubernetes Chart for Chroma AI application database
 
-This chart deploys a ChromaDB Vector Store cluster on a Kubernetes cluster using the Helm package manager.
+This chart deploys a single-node Chroma database on a Kubernetes cluster using the Helm package manager.
+
+> [!TIP]
+> Deploying and managing multiple Chroma nodes support will arrive with the [Chroma single-node Operator](https://github.com/amikos-tech/chromadb-operator).
 
 ## Roadmap
 
-- [ ] Security - the ability to secure chroma API with TLS and OIDC <- PoC completed waiting to be merged in the main
-  repo
-- [ ] Backup and restore - the ability to back up and restore the index data
-- [ ] Observability - the ability to monitor the cluster using Prometheus and Grafana
+- [ ] `Work in progress` Security - the ability to secure chroma API with TLS
+- [ ] `Work in progress` Backup and restore - the ability to back up and restore the index data
+- [ ] `Work in progress` Observability - the ability to monitor the cluster using Prometheus and Grafana
 
 ## Prerequisites
 
+> [!NOTE]
 > Note: These prerequisites are necessary for local testing. If you have a Kubernetes cluster already setup you can skip
 
 - Docker
@@ -60,11 +63,10 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                               | Type    | Default                               | Description                                                                                                                                                                        |
 |-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`             | string  | `0.5.23` (Chart app version)                               | The ChromaDB version. Supported version `0.4.3` - `0.5.23`                                                                                                    |
+| `chromadb.apiVersion`             | string  | `0.6.2` (Chart app version)                               | The ChromaDB version. Supported version `0.4.3` - `0.6.2`                                                                                                    |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
 | `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
-| `chromadb.logConfigFileLocation`  | string  | `config/log_config.yaml`              | The location of the log config file. By default the on in the chart's config/ dir is taken                                                                                         |
 | `chromadb.anonymizedTelemetry`    | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                         |
 | `chromadb.corsAllowOrigins`       | list    | `- "*"`                               | The CORS config. By default we allow all (possibly a security concern)                                                                                                             |
 | `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 |
@@ -76,6 +78,9 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
 | `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
 | `image.repository`                | string  | `ghcr.io/chroma-core/chroma`          | The repository of the image.                                                                                                                                                       |
+| `chromadb.logging.root`          | string  | `INFO`                                | The root logging level.                                                                                                                                                           |
+| `chromadb.logging.chromadb`     | string  | `DEBUG`                               | The chromadb logging level.                                                                                                                                                       |
+| `chromadb.logging.uvicorn`       | string  | `INFO`                                | The uvicorn logging level.                                                                                                                                                        |
 
 ## Verifying installation
 
@@ -101,7 +106,8 @@ minikube profile chroma #select chroma profile in minikube as active for kubectl
 
 ## Chroma Authentication
 
-> Note: Token auth is enabled by default
+> [!NOTE]
+> Token auth is enabled by default
 
 By default, the chart will use a `chromadb-auth` secret in Chroma's namespace to authenticate requests. This secret is
 generated at install time.
@@ -112,7 +118,8 @@ Chroma authentication is supported for the following API versions:
 - basic >= 0.4.7
 - token >= 0.4.8
 
-> Note: Using auth parameters with lower version will result in auth parameters being ignored.
+> [!NOTE]
+> Using auth parameters with lower version will result in auth parameters being ignored.
 
 ### Token Auth
 
@@ -130,7 +137,7 @@ export CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o js
 export CHROMA_HEADER_NAME=$(kubectl --namespace default get configmap chroma-chromadb-token-auth-config -o jsonpath="{.data.CHROMA_AUTH_TOKEN_TRANSPORT_HEADER}")
 ```
 
-> Note: The above examples assume `default` namespace is used for Chroma deployment.
+> [!NOTE]
 > Note: The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
@@ -139,8 +146,9 @@ Test the token:
 curl -v http://localhost:8000/api/v1/collections -H "${CHROMA_HEADER_NAME}: Bearer ${CHROMA_TOKEN}"
 ```
 
-> Note: The above `curl` assumes a localhost forwarding is made to port 8000
-> Note: If auth header is `AUTHORIZATION` then add `Bearer` prefix to the token when using curl.
+> [!NOTE]
+> The above `curl` assumes a localhost forwarding is made to port 8000
+> If auth header is `AUTHORIZATION` then add `Bearer` prefix to the token when using curl.
 
 ### Basic Auth
 
@@ -151,8 +159,8 @@ CHROMA_BASIC_AUTH_USERNAME=$(kubectl --namespace default get secret chromadb-aut
 CHROMA_BASIC_AUTH_PASSWORD=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.password}" | base64 --decode)
 ```
 
-> Note: The above examples assume `default` namespace is used for Chroma deployment.
-> Note: The above examples assume `default` namespace is used for Chroma deployment.
+> [!NOTE]
+> The above examples assume `default` namespace is used for Chroma deployment.
 
 Test the token:
 
@@ -161,7 +169,8 @@ curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAM
 curl -v http://localhost:8000/api/v1/collections -u "${CHROMA_BASIC_AUTH_USERNAME}:${CHROMA_BASIC_AUTH_PASSWORD}"
 ```
 
-> Note: The above `curl` assumes a localhost forwarding is made to port 8000
+> [!NOTE]
+> The above `curl` assumes a localhost forwarding is made to port 8000
 
 
 ### Using custom/existing secret
@@ -203,7 +212,7 @@ To use the chart as a dependency, add the following to your `Chart.yaml` file:
 ```yaml
 dependencies:
   - name: chromadb
-    version: 0.1.19
+    version: 0.1.22
     repository: "https://amikos-tech.github.io/chromadb-chart/"
 ```
 
@@ -212,6 +221,6 @@ Then, run `helm dependency update` to install the chart.
 
 ## References
 
+- Chroma: https://docs.trychroma.com/docs/overview/getting-started
 - Helm install: https://helm.sh/docs/intro/install/
 - Minikube install: https://minikube.sigs.k8s.io/docs/start/
-- ChromaDB: https://docs.trychroma.com/getting-started
