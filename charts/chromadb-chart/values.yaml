@@ -117,6 +117,9 @@ chromadb:
   serverHttpPort: 8000
   dataVolumeSize: "1Gi"
   dataVolumeStorageClass: null
+  maintenance:
+    collection_cache_policy: null # possible values: null or "LRU"
+    collection_cache_limit_bytes: 1000000000 # defaults to 1GB. TODO: this must also observe limits if defined
   auth:
     enabled: true
     type: "token" # possible values: basic, token
@@ -125,7 +128,6 @@ chromadb:
       username: "chroma"
       password: null  # The string used as the auth.basic password. Only used if value not null, otherwise a random string will be generated and used.
     token:
-      headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
 

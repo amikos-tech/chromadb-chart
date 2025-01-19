@@ -102,6 +102,19 @@ spec:
             - name: CHROMA_LOG_CONFIG
               value: "{{ .Values.chromadb.logConfigFileLocation }}"
             {{- end }}
+            {{- if .Values.chromadb.maintenance.collection_cache_policy }}
+            {{- if ne .Values.chromadb.maintenance.collection_cache_policy "LRU" }}
+                {{- fail "collection_cache_policy must be 'LRU'" }}
+            {{- end }}
+            - name: CHROMA_SEGMENT_CACHE_POLICY
+              value: "{{ .Values.chromadb.maintenance.collection_cache_policy }}"
+            - name: CHROMA_MEMORY_LIMIT_BYTES
+              {{- $bytes := int .Values.chromadb.maintenance.collection_cache_limit_bytes }}
+              {{- if le $bytes 0 }}
+                {{- fail "collection_cache_limit_bytes must be a positive integer" }}
+              {{- end }}
+              value: "{{ $bytes }}"
+            {{- end }}
             {{- if and  .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
             - name: CHROMA_SERVER_AUTH_CREDENTIALS
