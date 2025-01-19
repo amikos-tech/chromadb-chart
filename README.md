@@ -69,7 +69,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
 | `chromadb.anonymizedTelemetry`    | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                         |
 | `chromadb.corsAllowOrigins`       | list    | `- "*"`                               | The CORS config. By default we allow all (possibly a security concern)                                                                                                             |
-| `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 |
+| `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 Deprecated in since 0.1.23 (will be removed in 0.2.0) |
 | `chromadb.serverHost`             | string  | `0.0.0.0`                             | The API server host.                                                                                                                                                               |
 | `chromadb.serverHttpPort`         | int     | `8000`                                | The API server port.                                                                                                                                                               |
 | `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
@@ -81,6 +81,8 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.logging.root`          | string  | `INFO`                                | The root logging level.                                                                                                                                                           |
 | `chromadb.logging.chromadb`     | string  | `DEBUG`                               | The chromadb logging level.                                                                                                                                                       |
 | `chromadb.logging.uvicorn`       | string  | `INFO`                                | The uvicorn logging level.                                                                                                                                                        |
+| `chromadb.maintenance.collection_cache_policy` | string  | `null`                                | The collection cache policy. Possible values: null or "LRU". Read more [here](https://cookbook.chromadb.dev/strategies/memory-management/#lru-cache-strategy)                                                                                                                      |
+| `chromadb.maintenance.collection_cache_limit_bytes` | int  | `1000000000`                                | The collection cache limit in bytes.                                                                                                                                               |
 
 ## Verifying installation
 
@@ -115,8 +117,8 @@ generated at install time.
 Chroma authentication is supported for the following API versions:
 
 
-- basic >= 0.4.7
-- token >= 0.4.8
+- `basic` >= 0.4.7
+- `token` >= 0.4.8
 
 > [!NOTE]
 > Using auth parameters with lower version will result in auth parameters being ignored.
@@ -212,7 +214,7 @@ To use the chart as a dependency, add the following to your `Chart.yaml` file:
 ```yaml
 dependencies:
   - name: chromadb
-    version: 0.1.22
+    version: 0.1.23
     repository: "https://amikos-tech.github.io/chromadb-chart/"
 ```
 
