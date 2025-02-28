@@ -63,7 +63,7 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
-          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}-{{ .Values.image.base }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           {{- if .Values.chromadb.auth.enabled}}
           envFrom:
@@ -98,10 +98,21 @@ spec:
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
+            # We keep this for backwards compatibility log levels below are used for the new images
             {{- if .Values.chromadb.logConfigFileLocation }}
             - name: CHROMA_LOG_CONFIG
+            {{- if .Values.chromadb.logConfigMap }}
+              value: "/chroma/log_config_from_map.yaml"
+            {{- else }}
               value: "{{ .Values.chromadb.logConfigFileLocation }}"
             {{- end }}
+            {{- end }}
+            - name: ROOT_LOG_LEVEL
+              value: "{{ .Values.chromadb.logging.root | upper | default "WARN" }}"
+            - name: CHROMA_LOG_LEVEL
+              value: "{{ .Values.chromadb.logging.chromadb | upper | default "DEBUG" }}"
+            - name: UVICORN_LOG_LEVEL_UVICORN
+              value: "{{ .Values.chromadb.logging.uvicorn | upper | default "INFO" }}"
             {{- if .Values.chromadb.maintenance.collection_cache_policy }}
             {{- if ne .Values.chromadb.maintenance.collection_cache_policy "LRU" }}
                 {{- fail "collection_cache_policy must be 'LRU'" }}
@@ -140,9 +151,11 @@ spec:
           {{- end }}
           securityContext: {{ .Values.podSpec.securityContext | toYaml  | nindent 14 }}
           volumeMounts:
-            - mountPath: /chroma/log_config.yaml
+            {{- if .Values.chromadb.logConfigMap }}
+            - mountPath: /chroma/log_config_from_map.yaml
               name: log-config
               subPath: log_config.yaml
+            {{- end }}
             {{- if eq .Values.chromadb.isPersistent true }}
             - mountPath: "{{.Values.chromadb.persistDirectory}}"
               name: data
@@ -174,10 +187,12 @@ spec:
         - name: htpasswd-volume
           emptyDir: { }
         {{- end }}
+        {{- if .Values.chromadb.logConfigMap }}
         - name: log-config
           configMap:
-            name: "{{ include "chart.fullname" . }}-log-config"
+            name: "{{ .Values.chromadb.logConfigMap }}"
             defaultMode: 0644
+        {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:
     - metadata:

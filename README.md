@@ -22,13 +22,14 @@ This chart deploys a single-node Chroma database on a Kubernetes cluster using t
 
 ## Notes on the Chart image
 
-To make it possible and efficient to run chroma in Kubernetes we take the chroma base image (
-ghcr.io/chroma-core/chroma:<tag>) and we improve on it by:
+We now use a more efficient image - [https://github.com/amikos-tech/chroma-images](https://github.com/amikos-tech/chroma-images).
 
-- Removing unnecessary files from the `/chroma` dir
-- Improving on the `docker_entrypoint.sh` script to make it more suitable for running in Kubernetes
+> [!NOTE]
+> The image is available on [Docker Hub](https://hub.docker.com/r/amikos/chroma) and [GitHub Packages](https://github.com/amikos-tech/chroma-images/pkgs/container/chroma-images).
 
-Checkout `image/` dir for more details.
+
+> [!WARNING]
+> The new image supports only Chroma 0.6.1+. If you need an older version make sure to use `image.base=""` and `image.repository=ghcr.io/chroma-core/chroma` alongside `chromadb.apiVersion` set to the desired version.
 
 ## Installing the Chart
 
@@ -66,7 +67,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.apiVersion`             | string  | `0.6.3` (Chart app version)                               | The ChromaDB version. Supported version `0.4.3` - `0.6.3`                                                                                                    |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
-| `chromadb.persistDirectory`       | string  | `/index_data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
+| `chromadb.persistDirectory`       | string  | `/chroma/chroma`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
 | `chromadb.anonymizedTelemetry`    | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                         |
 | `chromadb.corsAllowOrigins`       | list    | `- "*"`                               | The CORS config. By default we allow all (possibly a security concern)                                                                                                             |
 | `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 Deprecated in since 0.1.23 (will be removed in 0.2.0) |
@@ -77,10 +78,12 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
 | `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
 | `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
-| `image.repository`                | string  | `ghcr.io/chroma-core/chroma`          | The repository of the image.                                                                                                                                                       |
+| `image.repository`                | string  | `amikos/chroma`          | The repository of the image.                                                                                                                                                       |
+| `image.base`                      | string  | `alpine`                                | The base image. Possible values: `alpine` or `bookworm`.                                                                                                                          |
 | `chromadb.logging.root`          | string  | `INFO`                                | The root logging level.                                                                                                                                                           |
 | `chromadb.logging.chromadb`     | string  | `DEBUG`                               | The chromadb logging level.                                                                                                                                                       |
 | `chromadb.logging.uvicorn`       | string  | `INFO`                                | The uvicorn logging level.                                                                                                                                                        |
+| `chromadb.logConfigMap`          | string  | `null`                                | The name of the config map with the logging configuration. If not set, the default logging configuration will be used. By default the chart ships with `log-config` config map, but you can provide your own logging configuration map.                                                               |
 | `chromadb.maintenance.collection_cache_policy` | string  | `null`                                | The collection cache policy. Possible values: null or "LRU". Read more [here](https://cookbook.chromadb.dev/strategies/memory-management/#lru-cache-strategy)                                                                                                                      |
 | `chromadb.maintenance.collection_cache_limit_bytes` | int  | `1000000000`                                | The collection cache limit in bytes.                                                                                                                                               |
 
