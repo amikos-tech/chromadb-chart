@@ -5,10 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/chroma-core/chroma
-#  repository: ghcr.io/amikos-tech/chromadb-chart/chroma
-  repository: ghcr.io/chroma-core/chroma
-#  repository: ghcr.io/amikos-tech/chromadb-chart/chroma
+  repository: amikos/chroma
+  base: "alpine" # possible values: "alpine" or "bookworm"
   pullPolicy: IfNotPresent
 
 # initContainer image
@@ -102,8 +100,9 @@ startupProbe:
 chromadb:
   allowReset: false
   isPersistent: true
-  persistDirectory: /index_data
+  persistDirectory: /chroma/chroma
   logConfigFileLocation: /chroma/log_config.yaml
+  logConfigMap: null
   logging:
     root: "INFO"
     chromadb: "DEBUG"
