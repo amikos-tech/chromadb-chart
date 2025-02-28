@@ -77,6 +77,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
 | `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
 | `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
+| `chromadb.auth.token.headerType`  | string  | `Authorization`                               | The header type for the token. Possible values: `Authorization` or `X-Chroma-Token` (also works with `X_CHROMA_TOKEN`).                                                                                 |
 | `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
 | `image.repository`                | string  | `amikos/chroma`          | The repository of the image.                                                                                                                                                       |
 | `image.base`                      | string  | `alpine`                                | The base image. Possible values: `alpine` or `bookworm`.                                                                                                                          |
@@ -131,8 +132,11 @@ Chroma authentication is supported for the following API versions:
 Token Auth works with two types of headers that can be configured via `chromadb.auth.token.tokenHeader`:
 
 
-- `AUTHORIZATION` (default) - the clients are expected to pass `Authorization: Brearer <token>` header
-- `X-CHROMA-TOKEN` - the clients are expected to pass `X-Chroma-Token: <token>` header
+- `AUTHORIZATION` (default) - the clients are expected to pass `Authorization: Bearer <token>` header
+- `X-CHROMA-TOKEN` (also works with `X_CHROMA_TOKEN`) - the clients are expected to pass `X-Chroma-Token: <token>` header
+
+> [!NOTE]
+> The header type is case-insensitive.
 
 Get the token:
 
@@ -198,6 +202,7 @@ chromadb:
 or 
 
 ```bash
+kubectl create secret generic chromadb-auth-custom --from-literal=token="my-token"
 helm install chroma chroma/chromadb --set chromadb.auth.existingSecret="chromadb-auth-custom"
 ```
 

@@ -71,3 +71,17 @@ Get the chroma api version
 {{- .Chart.AppVersion }}
 {{- end }}
 {{- end }}
+
+{{/*
+Get the Chroma auth token header type
+*/}}
+{{- define "chromadb.auth.token.headerType" -}}
+  {{- $headerType := "authorization" }}
+  {{- if .Values.chromadb.auth.token.headerType }}
+    {{- $headerType = lower .Values.chromadb.auth.token.headerType }}
+  {{- end }}
+  {{- if eq $headerType "authorization" }}Authorization
+  {{- else if or (eq $headerType "x_chroma_token") (eq $headerType "x-chroma-token") }}X-Chroma-Token{{- else }}
+    {{- fail (printf "Invalid ChromaDB auth token header type: %s. Allowed values: Authorization, X-Chroma-Token" .Values.chromadb.auth.token.headerType) }}
+  {{- end }}
+{{- end }}

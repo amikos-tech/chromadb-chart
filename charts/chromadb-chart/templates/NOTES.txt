@@ -11,13 +11,10 @@ kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "chart.
 
 {{- if .Values.chromadb.auth.enabled }}
 
-{{ .Values.chromadb.auth.type }} Authentication is enabled.
+{{ .Values.chromadb.auth.type }} authentication is enabled.
 
 {{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
 It uses {{ .Values.chromadb.auth.token.headerType }} header for token.
-To get your token run:
-
-
 
 Python:
 
@@ -25,10 +22,15 @@ Python:
 
 Get the token from the secret:
 
+{{ if .Values.chromadb.auth.existingSecret }}
+```bash
+export CHROMA_TOKEN=$(kubectl --namespace {{ .Release.Namespace }} get secret {{ .Values.chromadb.auth.existingSecret }} -o jsonpath="{.data.token}" | base64 --decode)
+```
+{{ else }}
 ```bash
 export CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
 ```
-
+{{ end }}
 ```python
 import os
 import chromadb
@@ -37,6 +39,7 @@ from chromadb.config import Settings
 client = chromadb.HttpClient(
   settings=Settings(
       chroma_client_auth_provider="chromadb.auth.token_authn.TokenAuthClientProvider",
+      chroma_auth_token_transport_header="{{ include "chromadb.auth.token.headerType" . }}",
       chroma_client_auth_credentials=os.environ.get("CHROMA_TOKEN")
   )
 )

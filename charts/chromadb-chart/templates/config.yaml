@@ -59,12 +59,6 @@ data:
   {{- else }}
   token: {{ .Values.chromadb.auth.token.value | default ( randAlphaNum 32 ) | b64enc | quote }}
   {{- end }}
-  {{- if eq .Values.chromadb.auth.token.headerType "AUTHORIZATION" }}
-  header: {{ "Authorization" | b64enc | quote}}
-  {{- end }}
-  {{- if eq .Values.chromadb.auth.token.headerType "X_CHROMA_TOKEN" }}
-  header: {{ "X-Chroma-Token" | b64enc | quote}}
-  {{- end }}
 {{- end }}
 ---
 {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
@@ -140,7 +134,7 @@ data:
   {{- $_ := set $newData "CHROMA_SERVER_AUTH_PROVIDER" "chromadb.auth.token.TokenAuthServerProvider" }}
   {{- else if (semverCompare ">= 0.5.0" (include "chromadb.apiVersion" .)) }}
   {{- $_ := set $newData "CHROMA_SERVER_AUTHN_PROVIDER" "chromadb.auth.token_authn.TokenAuthenticationServerProvider" }}
-  {{- $_ := set $newData "CHROMA_AUTH_TOKEN_TRANSPORT_HEADER" .Values.chromadb.auth.token.headerType }}
+  {{- $_ := set $newData "CHROMA_AUTH_TOKEN_TRANSPORT_HEADER" (include "chromadb.auth.token.headerType" .) }}
   {{- end }}
   {{- if $existingConfigMap }}
   {{- range $key, $value := $existingConfigMap.data }}
