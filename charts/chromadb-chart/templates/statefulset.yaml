@@ -63,7 +63,11 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
+          {{- if (semverCompare ">= 0.6.0" (include "chromadb.apiVersion" .)) }}
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}-{{ .Values.image.base }}"
+          {{- else }}
+          image: "ghcr.io/chroma-core/chroma:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}" # we fetch old images from the ghcr.io registry
+          {{- end }}
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           {{- if .Values.chromadb.auth.enabled}}
           envFrom:
