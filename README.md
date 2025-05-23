@@ -5,6 +5,9 @@ This chart deploys a single-node Chroma database on a Kubernetes cluster using t
 > [!TIP]
 > Deploying and managing multiple Chroma nodes support will arrive with the [Chroma single-node Operator](https://github.com/amikos-tech/chromadb-operator).
 
+> [!WARNING]
+> Chroma 1.0.0-1.0.10 does not yet support authentication and authorization. While the feature is added, we advise using 
+
 ## Roadmap
 
 - [ ] `Work in progress` Security - the ability to secure chroma API with TLS
@@ -19,17 +22,6 @@ This chart deploys a single-node Chroma database on a Kubernetes cluster using t
 - Docker
 - Minikube
 - Helm
-
-## Notes on the Chart image
-
-We now use a more efficient image - [https://github.com/amikos-tech/chroma-images](https://github.com/amikos-tech/chroma-images).
-
-> [!NOTE]
-> The image is available on [Docker Hub](https://hub.docker.com/r/amikos/chroma) and [GitHub Packages](https://github.com/amikos-tech/chroma-images/pkgs/container/chroma-images).
-
-
-> [!WARNING]
-> The new image supports only Chroma 0.6.1+. If you need an older version make sure to use `image.base=""` and `image.repository=ghcr.io/chroma-core/chroma` alongside `chromadb.apiVersion` set to the desired version.
 
 ## Installing the Chart
 
@@ -64,29 +56,32 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                               | Type    | Default                               | Description                                                                                                                                                                        |
 |-----------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`             | string  | `0.6.3` (Chart app version)                               | The ChromaDB version. Supported version `0.4.3` - `0.6.3`                                                                                                    |
+| `chromadb.apiVersion`             | string  | `1.0.10` (Chart app version)                               | The ChromaDB version. Supported version `0.4.3` - `1.0.x`                                                                                                    |
 | `chromadb.allowReset`             | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                       |
 | `chromadb.isPersistent`           | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                        |
-| `chromadb.persistDirectory`       | string  | `/chroma/chroma`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
+| `chromadb.persistDirectory`       | string  | `/data`                         | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                |
 | `chromadb.anonymizedTelemetry`    | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                         |
-| `chromadb.corsAllowOrigins`       | list    | `- "*"`                               | The CORS config. By default we allow all (possibly a security concern)                                                                                                             |
+| `chromadb.corsAllowOrigins`       | list    | N/A                               | The CORS config. Wildcard ["*"] is not supported in version 1.0.0 or later.                                                                                                             |
 | `chromadb.apiImpl`                | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 Deprecated in since 0.1.23 (will be removed in 0.2.0) |
 | `chromadb.serverHost`             | string  | `0.0.0.0`                             | The API server host.                                                                                                                                                               |
 | `chromadb.serverHttpPort`         | int     | `8000`                                | The API server port.                                                                                                                                                               |
 | `chromadb.dataVolumeSize`         | string  | `1Gi`                                 | The data volume size.                                                                                                                                                              |
 | `chromadb.dataVolumeStorageClass` | string  | `standard`                            | The storage class                                                                                                                                                                  |
-| `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma                                                                                                                                  |
-| `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported.                                                                                 |
-| `chromadb.auth.token.headerType`  | string  | `Authorization`                               | The header type for the token. Possible values: `Authorization` or `X-Chroma-Token` (also works with `X_CHROMA_TOKEN`).                                                                                 |
-| `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. |
-| `image.repository`                | string  | `amikos/chroma`          | The repository of the image.                                                                                                                                                       |
-| `image.base`                      | string  | `alpine`                                | The base image. Possible values: `alpine` or `bookworm`.                                                                                                                          |
-| `chromadb.logging.root`          | string  | `INFO`                                | The root logging level.                                                                                                                                                           |
-| `chromadb.logging.chromadb`     | string  | `DEBUG`                               | The chromadb logging level.                                                                                                                                                       |
-| `chromadb.logging.uvicorn`       | string  | `INFO`                                | The uvicorn logging level.                                                                                                                                                        |
-| `chromadb.logConfigMap`          | string  | `null`                                | The name of the config map with the logging configuration. If not set, the default logging configuration will be used. By default the chart ships with `log-config` config map, but you can provide your own logging configuration map.                                                               |
-| `chromadb.maintenance.collection_cache_policy` | string  | `null`                                | The collection cache policy. Possible values: null or "LRU". Read more [here](https://cookbook.chromadb.dev/strategies/memory-management/#lru-cache-strategy)                                                                                                                      |
-| `chromadb.maintenance.collection_cache_limit_bytes` | int  | `1000000000`                                | The collection cache limit in bytes.                                                                                                                                               |
+| `chromadb.auth.enabled`           | boolean | `true`                                | A flag to enable/disable authentication in Chroma. **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                                                                 |
+| `chromadb.auth.type`              | string  | `token`                               | Type of auth. Currently "token" (apiVersion>=0.4.8) and "basic" (apiVersion>=0.4.7) are supported. **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                  |
+| `chromadb.auth.token.headerType`  | string  | `Authorization`                               | The header type for the token. Possible values: `Authorization` or `X-Chroma-Token` (also works with `X_CHROMA_TOKEN`). **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                 |
+| `chromadb.auth.existingSecret`    | string  | `""`                                  | Name of an [existing secret](#using-customexisting-secret) with the auth credentials. For token auth the secret should have `token` data and for basic auth the secret should have `username` and `password` data. **Note**: This is not supported in Chroma version 1.0.0 or later. |
+| `image.repository`                | string  | `ghcr.io/chroma-core/chroma`          | The repository of the image.                                                                                                                                                       |
+| `chromadb.logging.root`          | string  | `INFO`                                | The root logging **Note**: This is not supported in Chroma version 1.0.0 or later.level.                                                                                                                                                           |
+| `chromadb.logging.chromadb`     | string  | `DEBUG`                               | The chromadb logging **Note**: This is not supported in Chroma version 1.0.0 or later.level.                                                                                                                                                       |
+| `chromadb.logging.uvicorn`       | string  | `INFO`                                | The uvicorn logging  **Note**: This is not supported in Chroma version 1.0.0 or later.level.                                                                                                                                                        |
+| `chromadb.logConfigMap`          | string  | `null`                                | The name of the config map with the logging configuration. If not set, the default logging configuration will be used. By default the chart ships with `log-config` config map, but you can provide your own logging configuration map.  **Note**: This is not supported in Chroma version 1.0.0 or later.                                                              |
+| `chromadb.maintenance.collection_cache_policy` | string  | `null`                                | The collection cache policy. Possible values: null or "LRU". Read more [here](https://cookbook.chromadb.dev/strategies/memory-management/#lru-cache-strategy). **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                                                      |
+| `chromadb.maintenance.collection_cache_limit_bytes` | int  | `1000000000`                                | The collection cache limit in bytes. **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                                                                               |
+| `chromadb.maxPayloadSizeBytes` | int | `41943040` | The size in bytes of  the maximum payload that can be sent to Chroma. This is supported in v1.0.0 or later. |
+| `chromadb.telemetry.enabled` | string | `false` | Enables chroma to send OTEL telemetry |
+| `chromadb.telemetry.endpoint` | string | `` | OTEL collector endpoint e.g. "http://otel-collector:4317" |
+| `chromadb.telemetry.serviceName` | string | `chroma` | The service name that will show up in traces. |
 
 ## Verifying installation
 
