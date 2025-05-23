@@ -63,13 +63,7 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
-          {{- if (semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .))}}
           image: "ghcr.io/chroma-core/chroma:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
-          {{- else if (semverCompare ">= 0.6.0" (include "chromadb.apiVersion" .)) }}
-          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}-{{ .Values.image.base }}"
-          {{- else }}
-          image: "ghcr.io/chroma-core/chroma:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}" # we fetch old images from the ghcr.io registry
-          {{- end }}
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           {{- if .Values.chromadb.auth.enabled}}
           envFrom:
@@ -158,11 +152,9 @@ spec:
           securityContext: {{ .Values.podSpec.securityContext | toYaml  | nindent 14 }}
           volumeMounts:
             {{- if and (semverCompare ">= 0.6.0" (include "chromadb.apiVersion" .)) (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) }}
-            {{- if .Values.chromadb.logConfigMap }}
             - mountPath: "/chroma/log_config.yaml"
               name: log-config
               subPath: log_config.yaml
-            {{- end }}
             {{- else if (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .))}}
             - mountPath: "/chroma/log_config.yaml"
               name: log-config-legacy
@@ -210,6 +202,11 @@ spec:
           configMap:
             name: "{{ .Values.chromadb.logConfigMap }}"
             defaultMode: 0644
+        {{- else }}
+        - name: log-config
+          configMap:
+            name:  "log-config"
+            defaultMode: 0644
         {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:
@@ -223,4 +220,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.chromadb.dataVolumeSize }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete  # Deletes PVCs when StatefulSet is deleted
+    whenScaled: Retain   # Retains PVCs during scale-down (default)
   {{- end }}
