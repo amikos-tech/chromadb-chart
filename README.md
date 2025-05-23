@@ -1,13 +1,15 @@
 # Kubernetes Chart for Chroma AI application database
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/chromadb-helm)](https://artifacthub.io/packages/search?repo=chromadb-helm)
+
 This chart deploys a single-node Chroma database on a Kubernetes cluster using the Helm package manager.
 
 > [!TIP]
 > Deploying and managing multiple Chroma nodes support will arrive with the [Chroma single-node Operator](https://github.com/amikos-tech/chromadb-operator).
 
 
-+> [!WARNING]
-+> Chroma 1.0.0-1.0.10 does not yet support authentication and authorization. While the feature is added, we advise using network-level security controls, deploying behind a secure API gateway, or upgrading to a newer version if your use case requires authentication.
+> [!WARNING]
+> Chroma 1.0.0-1.0.10 does not yet support authentication and authorization. While the feature is added, we advise using network-level security controls, deploying behind a secure API gateway, or upgrading to a newer version if your use case requires authentication.
 
 
 ## Roadmap
