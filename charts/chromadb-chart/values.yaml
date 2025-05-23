@@ -107,7 +107,7 @@ chromadb:
     chromadb: "DEBUG"
     uvicorn: "INFO"
   anonymizedTelemetry: false
-+  corsAllowOrigins: [] # as of version 1.0.x * is not allowed
+  corsAllowOrigins: [] # as of version 1.0.x * is not allowed
   serverHost: "0.0.0.0"
   serverHttpPort: 8000
   maxPayloadSizeBytes: "41943040"
