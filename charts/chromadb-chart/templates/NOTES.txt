@@ -28,7 +28,7 @@ export CHROMA_TOKEN=$(kubectl --namespace {{ .Release.Namespace }} get secret {{
 ```
 {{ else }}
 ```bash
-export CHROMA_TOKEN=$(kubectl --namespace default get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
+export CHROMA_TOKEN=$(kubectl --namespace {{ .Release.Namespace }} get secret chromadb-auth -o jsonpath="{.data.token}" | base64 --decode)
 ```
 {{ end }}
 ```python
