@@ -63,9 +63,9 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
-          image: "ghcr.io/chroma-core/chroma:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-          {{- if .Values.chromadb.auth.enabled}}
+          {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled }}
           envFrom:
             - configMapRef:
                 {{- if (eq .Values.chromadb.auth.type "token") }}
@@ -80,12 +80,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) }}
             - name: IS_PERSISTENT
               value: "{{ .Values.chromadb.isPersistent }}"
-            {{- if eq .Values.chromadb.isPersistent true }}
             - name: PERSIST_DIRECTORY
               value: "{{ .Values.chromadb.persistDirectory }}"
-            {{- end }}
             - name: ALLOW_RESET
               value: "{{ .Values.chromadb.allowReset | default false}}"
             - name: ANONYMIZED_TELEMETRY
@@ -93,19 +92,6 @@ spec:
             {{- if .Values.chromadb.corsAllowOrigins }}
             - name: CHROMA_SERVER_CORS_ALLOW_ORIGINS
               value: '{{ .Values.chromadb.corsAllowOrigins | join "\",\"" | printf "[\"%s\"]"}}'
-            {{- end }}
-            {{- if .Values.chromadb.serverHttpPort }}
-            - name: CHROMA_SERVER_HTTP_PORT
-              value: "{{ .Values.chromadb.serverHttpPort }}"
-            {{- end }}
-            # We keep this for backwards compatibility log levels below are used for the new images
-            {{- if .Values.chromadb.logConfigFileLocation }}
-            - name: CHROMA_LOG_CONFIG
-            {{- if .Values.chromadb.logConfigMap }}
-              value: "/chroma/log_config.yaml"
-            {{- else }}
-              value: "{{ .Values.chromadb.logConfigFileLocation }}"
-            {{- end }}
             {{- end }}
             - name: ROOT_LOG_LEVEL
               value: "{{ .Values.chromadb.logging.root | upper | default "WARN" }}"
@@ -126,7 +112,21 @@ spec:
               {{- end }}
               value: "{{ $bytes }}"
             {{- end }}
-            {{- if and  .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+            {{- end }}
+            {{- if .Values.chromadb.serverHttpPort }}
+            - name: CHROMA_SERVER_HTTP_PORT
+              value: "{{ .Values.chromadb.serverHttpPort }}"
+            {{- end }}
+            # We keep this for backwards compatibility log levels below are used for the new images
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.logConfigFileLocation }}
+            - name: CHROMA_LOG_CONFIG
+            {{- if .Values.chromadb.logConfigMap }}
+              value: "/chroma/log_config.yaml"
+            {{- else }}
+              value: "{{ .Values.chromadb.logConfigFileLocation }}"
+            {{- end }}
+            {{- end }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) (semverCompare "< 0.5.0" (include "chromadb.apiVersion" .)) }}
             - name: CHROMA_SERVER_AUTH_CREDENTIALS
             {{- else if (semverCompare ">= 0.5.0" (include "chromadb.apiVersion" .))}}
@@ -151,7 +151,7 @@ spec:
           {{- end }}
           securityContext: {{ .Values.podSpec.securityContext | toYaml  | nindent 14 }}
           volumeMounts:
-            {{- if and (semverCompare ">= 0.6.0" (include "chromadb.apiVersion" .)) (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (semverCompare ">= 0.6.0" (include "chromadb.apiVersion" .)) }}
             - mountPath: "/chroma/log_config.yaml"
               name: log-config
               subPath: log_config.yaml
@@ -164,9 +164,14 @@ spec:
             - mountPath: "{{.Values.chromadb.persistDirectory}}"
               name: data
             {{- end }}
-            {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
             - mountPath: /chroma/auth/
               name: htpasswd-volume
+            {{- end }}
+            {{- if (semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .)) }}
+            - mountPath: /config.yaml
+              name: v1-config
+              subPath: config.yaml
             {{- end }}
           readinessProbe:
             tcpSocket:
@@ -187,7 +192,7 @@ spec:
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
       volumes:
-        {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+        {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
         - name: htpasswd-volume
           emptyDir: { }
         {{- end }}
@@ -208,19 +213,24 @@ spec:
             name:  "log-config"
             defaultMode: 0644
         {{- end }}
+        {{- if (semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .)) }}
+        - name: v1-config
+          configMap:
+            name: v1-config
+            defaultMode: 0644
+        {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:
     - metadata:
         name: data
       spec:
-        accessModes: [ "ReadWriteOnce" ]
-        {{- if .Values.chromadb.dataVolumeStorageClass }}
-        storageClassName: "{{ .Values.chromadb.dataVolumeStorageClass }}"
+        accessModes: {{ .Values.chromadb.data.accessModes | toYaml | nindent 14 }}
+        {{- if .Values.chromadb.data.storageClass }}
+        storageClassName: "{{ .Values.chromadb.data.storageClass }}"
         {{- end }}
         resources:
           requests:
-            storage: {{ .Values.chromadb.dataVolumeSize }}
+            storage: {{ .Values.chromadb.data.volumeSize }}
   persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Delete  # Deletes PVCs when StatefulSet is deleted
-    whenScaled: Retain   # Retains PVCs during scale-down (default)
+    whenDeleted:  {{ .Values.chromadb.data.retentionPolicyOnDelete | default "Delete" }}
   {{- end }}

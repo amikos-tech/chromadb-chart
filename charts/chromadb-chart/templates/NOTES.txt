@@ -1,4 +1,4 @@
-Congratulations you have successfully installed Chroma version {{.Values.chromadb.apiVersion }}, Chart version {{ .Chart.Version }}!
+Congratulations you have successfully installed Chroma version {{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}, Chart version {{ .Chart.Version }}!
 
 Visit the official Chroma documentation for more information: https://docs.trychroma.com/. 
 For tips and recipes, check out the Chroma cookbook: https://cookbook.chromadb.dev/.
@@ -9,7 +9,7 @@ You can access your Chroma instance by forwarding the port to your local machine
 kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "chart.fullname" . }} {{ .Values.chromadb.serverHttpPort }}:{{ .Values.chromadb.serverHttpPort }}
 ```
 
-{{- if .Values.chromadb.auth.enabled }}
+{{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (.Values.chromadb.auth.enabled) }}
 
 {{ .Values.chromadb.auth.type }} authentication is enabled.
 

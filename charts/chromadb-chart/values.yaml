@@ -5,8 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: amikos/chroma
-  base: "alpine" # possible values: "alpine" or "bookworm"
+  repository: ghcr.io/chroma-core/chroma
   pullPolicy: IfNotPresent
 
 # initContainer image
@@ -100,7 +99,7 @@ startupProbe:
 chromadb:
   allowReset: false
   isPersistent: true
-  persistDirectory: /chroma/chroma
+  persistDirectory: /data
   logConfigFileLocation: /chroma/log_config.yaml
   logConfigMap: null
   logging:
@@ -108,18 +107,23 @@ chromadb:
     chromadb: "DEBUG"
     uvicorn: "INFO"
   anonymizedTelemetry: false
-  corsAllowOrigins:
-    - "*" # TODO this might be dangerous
-    - "*" # TODO this might be dangerous
-#  apiImpl: "chromadb.api.fastapi.FastAPI" # this doesn't seem to be working.
+  corsAllowOrigins: {} # as of version 1.0.x * is not allowed
   serverHost: "0.0.0.0"
   serverHttpPort: 8000
-  dataVolumeSize: "1Gi"
-  dataVolumeStorageClass: null
+  maxPayloadSizeBytes: "41943040"
+  data:
+    volumeSize: "1Gi"
+    storageClass: null
+    accessModes: [ "ReadWriteOnce" ]
+    retentionPolicyOnDelete: "Delete"
+  telemetry:
+    enabled: false
+    endpoint: ""
+    serviceName: "chroma"
   maintenance:
     collection_cache_policy: null # possible values: null or "LRU"
     collection_cache_limit_bytes: 1000000000 # defaults to 1GB. TODO: this must also observe limits if defined
-  auth:
+  auth: # not working in 1.0.x
     enabled: true
     type: "token" # possible values: basic, token
     existingSecret: ""
