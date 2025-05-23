@@ -1,4 +1,4 @@
-name: Dev Image Build and Integration test
+name: Integration test
 
 on:
   push:
@@ -6,30 +6,25 @@ on:
       - main
     paths:
       - charts/**
-      - image/**
       - tests/**
   pull_request_target:
     branches:
       - main
     paths:
       - charts/**
-      - image/**
       - tests/**
   workflow_dispatch:
 
 env:
-  REGISTRY: ghcr.io
   LATEST_VERSION: "1.0.10"
 jobs:
   integration-test:
-#    needs: build-images
-#    needs: build-images
     strategy:
       matrix:
         kubernetes-version: [1.23.0, 1.33.1]
         chroma-version:
           [
-            0.6.23,
+            0.6.3,
             1.0.10,
           ]
     runs-on: ubuntu-latest
