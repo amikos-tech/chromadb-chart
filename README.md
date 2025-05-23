@@ -83,7 +83,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.maintenance.collection_cache_policy` | string  | `null`                                | The collection cache policy. Possible values: null or "LRU". Read more [here](https://cookbook.chromadb.dev/strategies/memory-management/#lru-cache-strategy). **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                                                      |
 | `chromadb.maintenance.collection_cache_limit_bytes` | int  | `1000000000`                                | The collection cache limit in bytes. **Note**: This is not supported in Chroma version 1.0.0 or later.                                                                                                                                               |
 | `chromadb.maxPayloadSizeBytes` | int | `41943040` | The size in bytes of  the maximum payload that can be sent to Chroma. This is supported in v1.0.0 or later. |
-| `chromadb.telemetry.enabled` | string | `false` | Enables chroma to send OTEL telemetry |
+| `chromadb.telemetry.enabled` | boolean | `false` | Enables chroma to send OTEL telemetry |
 | `chromadb.telemetry.endpoint` | string | `` | OTEL collector endpoint e.g. "http://otel-collector:4317" |
 | `chromadb.telemetry.serviceName` | string | `chroma` | The service name that will show up in traces. |
 
