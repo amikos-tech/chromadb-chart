@@ -62,6 +62,64 @@ spec:
       affinity:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
+        {{- if .Values.nginx.enabled }}
+        - name: nginx
+          image: {{ .Values.nginx.image }}
+          imagePullPolicy: {{ .Values.nginx.imagePullPolicy }}
+          {{- if .Values.nginx.resources }}
+          resources: {{ toYaml .Values.nginx.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.nginx.containerSecurityContext.enabled }}
+          securityContext: {{ toYaml .Values.nginx.containerSecurityContext.secContext | nindent 12 }}
+          {{- end }}
+          {{- if .Values.nginx.livenessProbe.enabled }}
+          livenessProbe: {{ toYaml (omit .Values.nginx.livenessProbe "enabled") | nindent 12 }}
+          {{- end }}
+          {{- if .Values.nginx.readinessProbe.enabled }}
+          readinessProbe: {{ toYaml (omit .Values.nginx.readinessProbe "enabled") | nindent 12 }}
+          {{- end }}
+          {{- if .Values.nginx.startupProbe.enabled }}
+          startupProbe: {{ toYaml (omit .Values.nginx.startupProbe "enabled") | nindent 12 }}
+          {{- end }}
+          env:
+            - name: TZ
+              value: "Europe/Paris"
+          ports:
+            - name: {{ .Values.nginx.tls.enabled | ternary "https" "http" }}
+              containerPort: {{ .Values.nginx.containerPorts.http }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+            {{- if .Values.nginx.tls.enabled }}
+            - name: certs
+              readOnly: true
+              mountPath: /etc/nginx/certs
+            {{- end }}
+          {{- if .Values.nginx.readinessProbe.enabled }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.nginx.containerPorts.http }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- end }}
+          {{- if .Values.nginx.livenessProbe.enabled }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.nginx.containerPorts.http }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          {{- end }}
+          {{- if .Values.nginx.startupProbe.enabled }}
+          startupProbe:
+            tcpSocket:
+              port: {{ .Values.nginx.containerPorts.http }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
+          {{- end }}
+        {{- end }}
         - name: "chromadb"
           image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
@@ -175,19 +233,19 @@ spec:
             {{- end }}
           readinessProbe:
             tcpSocket:
-              port: {{ .Values.chromadb.serverHttpPort }}
+              port: {{ .Values.nginx.enabled | ternary .Values.nginx.containerPorts.http .Values.chromadb.serverHttpPort }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.chromadb.serverHttpPort }}
+              port: {{ .Values.nginx.enabled | ternary .Values.nginx.containerPorts.http .Values.chromadb.serverHttpPort }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           startupProbe:
             tcpSocket:
-              port: {{ .Values.chromadb.serverHttpPort }}
+              port: {{ .Values.nginx.enabled | ternary .Values.nginx.containerPorts.http .Values.chromadb.serverHttpPort }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
@@ -218,6 +276,17 @@ spec:
           configMap:
             name: v1-config
             defaultMode: 0644
+        {{- end }}
+        {{- if .Values.nginx.enabled }}
+        - name: nginx-config
+          configMap:
+            name: {{ include "chart.fullname" . }}-nginx
+            defaultMode: 0644
+        {{- end }}
+        {{- if .Values.nginx.tls.enabled }}
+        - name: certs
+          secret:
+            secretName: {{ include "chart.fullname" . }}-tls
         {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:

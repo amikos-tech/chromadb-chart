@@ -7,8 +7,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.chromadb.serverHttpPort }}
-      targetPort: {{ .Values.chromadb.serverHttpPort }}
+    - port: {{ .Values.nginx.enabled | ternary .Values.nginx.containerPorts.http .Values.chromadb.serverHttpPort }}
+      targetPort: {{ .Values.nginx.enabled | ternary .Values.nginx.containerPorts.http .Values.chromadb.serverHttpPort }}
       protocol: TCP
       name: http
       {{- if .Values.service.nodePort }}

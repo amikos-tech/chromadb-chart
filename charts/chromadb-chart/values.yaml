@@ -134,3 +134,41 @@ chromadb:
       headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
 
+nginx:
+  enabled: true
+  image: docker.io/library/nginx:1.23
+  imagePullPolicy: Always
+  resources: {}
+  containerPorts:
+    http: 443
+  tls:
+    enabled: true
+  readinessProbe:
+    enabled: true
+    failureThreshold: 20
+    timeoutSeconds: 10
+    periodSeconds: 5
+  livenessProbe:
+    enabled: true
+    failureThreshold: 40
+    timeoutSeconds: 10
+    periodSeconds: 5
+  startupProbe:
+    enabled: true
+    failureThreshold: 1000
+    periodSeconds: 5
+    initialDelaySeconds: 10
+  containerSecurityContext:
+    enabled: false
+    secContext:
+      seLinuxOptions: {}
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"

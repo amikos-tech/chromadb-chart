@@ -164,7 +164,7 @@ data:
       endpoint: {{ .Values.chromadb.telemetry.endpoint }}
     {{- end }}
     port: {{ .Values.chromadb.serverHttpPort }}
-    listen_address: {{ .Values.chromadb.serverHost }}
+    listen_address: {{ .Values.nginx.enabled | ternary "127.0.0.1" .Values.chromadb.serverHost }}
     max_payload_size_bytes: {{ .Values.chromadb.maxPayloadSizeBytes | int64 }}
     {{- if .Values.chromadb.corsAllowOrigins }}
       {{- if and (eq (len .Values.chromadb.corsAllowOrigins) 1) (eq (index .Values.chromadb.corsAllowOrigins 0) "*") }}
@@ -174,3 +174,36 @@ data:
     {{- end }}
     persist_path: {{ .Values.chromadb.persistDirectory }}
     allow_reset: {{ .Values.chromadb.allowReset }}
+---
+{{- if .Values.nginx.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-nginx
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    server {
+        {{- if .Values.nginx.tls.enabled }}
+        listen {{ .Values.nginx.containerPorts.http }} ssl;
+        ssl_certificate     /etc/nginx/certs/tls.crt;
+        ssl_certificate_key /etc/nginx/certs/tls.key;
+        {{- else }}
+        listen {{ .Values.nginx.containerPorts.http }};
+        {{- end }}
+
+        client_max_body_size 40M;
+
+        location / {
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+            proxy_pass http://127.0.0.1:{{ .Values.chromadb.serverHttpPort }};
+        }
+    }
+{{- end }}
