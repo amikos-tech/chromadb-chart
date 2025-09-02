@@ -66,7 +66,7 @@ spec:
       containers:
         {{- if .Values.nginx.enabled }}
         - name: nginx
-          image: "{{ include "chart.images.nginx" . }}"
+          image: {{ .Values.nginx.image }}
           imagePullPolicy: {{ .Values.nginx.imagePullPolicy }}
           {{- if .Values.nginx.resources }}
           resources: {{ toYaml .Values.nginx.resources | nindent 12 }}
@@ -286,11 +286,9 @@ spec:
             defaultMode: 0644
         {{- end }}
         {{- if .Values.nginx.tls.enabled }}
-        {{- $default := printf "%s-nginx-tls" (include "chart.fullname" .) -}}
-        {{- $secretName := .Values.nginx.tls.secretName | default $default }}
         - name: certs
           secret:
-            secretName: {{ $secretName }}
+            secretName: {{ include "chart.fullname" . }}-tls
         {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:
