@@ -1,0 +1,18 @@
+name: Helm Push
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+  release:
+    types: [published]
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  push:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-push')
+    uses: Flex-O-SAS/saas-workflows/.github/workflows/helm-push.yml@v1
+    with:
+      path: charts/chromadb-chart
