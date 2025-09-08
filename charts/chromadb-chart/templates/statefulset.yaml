@@ -286,7 +286,7 @@ spec:
         {{- if .Values.nginx.tls.enabled }}
         - name: certs
           secret:
-            secretName: {{ include "chart.fullname" . }}-tls
+            secretName: {{ .Values.nginx.tls.secretName }}
         {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:

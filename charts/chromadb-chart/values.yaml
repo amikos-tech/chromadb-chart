@@ -143,6 +143,7 @@ nginx:
     http: 443
   tls:
     enabled: true
+    secretName: "chromadb-tls"
   readinessProbe:
     enabled: true
     failureThreshold: 20
