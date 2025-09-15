@@ -284,9 +284,11 @@ spec:
             defaultMode: 0644
         {{- end }}
         {{- if .Values.nginx.tls.enabled }}
+        {{- $default := printf "%s-nginx-tls" (include "chart.fullname" .) -}}
+        {{- $secretName := .Values.nginx.tls.secretName | default $default }}
         - name: certs
           secret:
-            secretName: {{ .Values.nginx.tls.secretName }}
+            secretName: {{ $secretName }}
         {{- end }}
   {{- if eq .Values.chromadb.isPersistent true }}
   volumeClaimTemplates:
