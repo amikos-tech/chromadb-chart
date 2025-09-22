@@ -31,6 +31,51 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
+Returns the proper image name.
+*/}}
+{{- define "chart.images.chroma" -}}
+{{- $registryName := default .Values.image.registry ((.Values.global).imageRegistry) -}}
+{{- $repositoryName := .Values.image.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .Values.image.tag | toString -}}
+{{- if not .Values.image.tag -}}
+  {{ if .Values.chromadb.apiVersion -}}
+    {{- $termination = .Values.chromadb.apiVersion | toString -}}
+  {{- else if .Chart -}}
+    {{- $termination = .Chart.AppVersion | toString -}}
+  {{- end -}}
+{{- end -}}
+{{- if .Values.image.digest -}}
+    {{- $separator = "@" -}}
+    {{- $termination = .Values.image.digest | toString -}}
+{{- end -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Returns the proper initImage name.
+*/}}
+{{- define "chart.images.initImage" -}}
+{{- $registryName := default .Values.initImage.registry ((.Values.global).imageRegistry) -}}
+{{- $repositoryName := .Values.initImage.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .Values.initImage.tag | toString -}}
+{{- if .Values.initImage.digest -}}
+    {{- $separator = "@" -}}
+    {{- $termination = .Values.initImage.digest | toString -}}
+{{- end -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "chart.labels" -}}

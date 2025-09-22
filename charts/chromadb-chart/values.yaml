@@ -1,6 +1,9 @@
 # Default values for chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+global:
+  imageRegistry: ""
+
 
 global:
   imagePullSecrets: [ ]
@@ -9,10 +12,14 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/chroma-core/chroma
+  tag: ""
   pullPolicy: IfNotPresent
 
 # initContainer image
-initImage: docker.io/httpd:2
+initImage:
+  repository: docker.io/httpd
+  tag: "2"
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: [ ]
 nameOverride: ""
