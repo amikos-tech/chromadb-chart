@@ -38,7 +38,8 @@ spec:
       {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
       initContainers:
         - name: generate-htpasswd
-          image: {{ .Values.initImage }}
+          image: "{{ include "chart.images.initImage" . }}"
+          imagePullPolicy: "{{ .Values.initImage.pullPolicy }}"
           env:
             - name: CHROMA_BASIC_USER
               valueFrom:
@@ -66,7 +67,7 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
-          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
+          image: "{{ include "chart.images.chroma" . }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled }}
           envFrom:
