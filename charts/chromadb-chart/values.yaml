@@ -136,7 +136,9 @@ chromadb:
 
 nginx:
   enabled: true
-  image: docker.io/library/nginx:1.23
+  image:
+    repository: docker.io/library/nginx
+    tag: "1.23"
   imagePullPolicy: Always
   resources: {}
   containerPorts:
