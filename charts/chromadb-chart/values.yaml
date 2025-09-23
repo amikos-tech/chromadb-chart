@@ -4,6 +4,7 @@
 
 global:
   imagePullSecrets: [ ]
+  imageRegistry: ""
 
 replicaCount: 1
 
