@@ -9,10 +9,14 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/chroma-core/chroma
+  tag: ""
   pullPolicy: IfNotPresent
 
 # initContainer image
-initImage: docker.io/httpd:2
+initImage:
+  repository: docker.io/httpd
+  tag: "2"
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: [ ]
 nameOverride: ""
