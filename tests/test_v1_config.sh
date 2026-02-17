@@ -38,6 +38,27 @@ get_v1_config() {
   echo "$output" | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -
 }
 
+get_statefulset_env_value() {
+  local env_name="$1"; shift
+  local output
+  output=$(helm template test "$CHART_DIR" "$@" --show-only templates/statefulset.yaml 2>&1) || {
+    echo "TEMPLATE_ERROR: $output" >&2
+    return 1
+  }
+  echo "$output" | yq eval ".spec.template.spec.containers[] | select(.name == \"chromadb\") | [.env[]? | select(.name == \"$env_name\") | .value][0] // \"null\"" -
+}
+
+assert_equal() {
+  local desc="$1" actual="$2" expected="$3"
+  if [ "$actual" = "$expected" ]; then
+    echo "  PASS: $desc"
+    PASS=$((PASS+1))
+  else
+    echo "  FAIL: $desc (expected '$expected', got '$actual')"
+    FAIL=$((FAIL+1))
+  fi
+}
+
 assert_template_fails() {
   local desc="$1"; shift
   local output
@@ -129,6 +150,31 @@ echo ""
 echo "10. CORS wildcard on < 1.0.0 (ConfigMap renders)"
 config=$(get_v1_config --set 'chromadb.corsAllowOrigins={*}' --set 'chromadb.apiVersion=0.6.3')
 assert_config_key "cors_allow_origins wildcard for pre-1.0" "$config" "cors_allow_origins[0]" "*"
+
+echo ""
+echo "11. CHROMA_SERVER_HTTP_PORT omitted for >= 1.0.0"
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT")
+assert_equal "CHROMA_SERVER_HTTP_PORT missing on >= 1.0.0" "$server_http_port_env" "null"
+
+echo ""
+echo "12. CHROMA_SERVER_HTTP_PORT set for < 1.0.0"
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=0.6.3' --set 'chromadb.serverHttpPort=9000')
+assert_equal "CHROMA_SERVER_HTTP_PORT is 9000 on < 1.0.0" "$server_http_port_env" "9000"
+
+echo ""
+echo "13. CHROMA_SERVER_HTTP_PORT omitted at boundary 1.0.0"
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=1.0.0')
+assert_equal "CHROMA_SERVER_HTTP_PORT missing on 1.0.0" "$server_http_port_env" "null"
+
+echo ""
+echo "14. CHROMA_SERVER_HTTP_PORT defaults to 8000 on < 1.0.0"
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=0.6.3')
+assert_equal "CHROMA_SERVER_HTTP_PORT is default 8000 on < 1.0.0" "$server_http_port_env" "8000"
+
+echo ""
+echo "15. Custom serverHttpPort on >= 1.0.0 does not create legacy env var"
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=1.5.0' --set 'chromadb.serverHttpPort=9000')
+assert_equal "CHROMA_SERVER_HTTP_PORT remains absent on >= 1.0.0 with custom port" "$server_http_port_env" "null"
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"
