@@ -124,6 +124,8 @@ assert_template_fails "telemetry.enabled without endpoint rejected" \
   --set 'chromadb.telemetry.enabled=true'
 
 echo ""
+# v1-config is only mounted for >= 1.0.0; this test validates template
+# rendering only, not runtime CORS behavior for pre-1.0 versions.
 echo "10. CORS wildcard on < 1.0.0 (ConfigMap renders)"
 config=$(get_v1_config --set 'chromadb.corsAllowOrigins={*}' --set 'chromadb.apiVersion=0.6.3')
 assert_config_key "cors_allow_origins wildcard for pre-1.0" "$config" "cors_allow_origins[0]" "*"

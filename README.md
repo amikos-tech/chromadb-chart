@@ -262,9 +262,10 @@ chromadb:
 ```
 
 > [!WARNING]
-> Keys in `extraConfig` override chart-managed keys of the same name. When overriding `port` or
-> `listen_address`, you must also update `chromadb.serverHttpPort` and `chromadb.serverHost` to match,
-> otherwise the Service, container port, and health probes will be out of sync.
+> Keys in `extraConfig` override chart-managed keys of the same name. Overriding `port` or
+> `listen_address` via `extraConfig` is **not allowed** and will cause template rendering to fail.
+> Use `chromadb.serverHttpPort` and `chromadb.serverHost` instead so that the Service, container
+> port, and health probes remain in sync.
 
 ## References
 
