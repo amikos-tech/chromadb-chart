@@ -6,6 +6,8 @@ on:
       - '**'
     paths:
       - charts/**
+      - tests/**
+      - .github/workflows/lint.yml
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
@@ -27,6 +29,28 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.44.6"
+          GOBIN_DIR="$(mktemp -d)"
+          cleanup() {
+            rm -rf "${GOBIN_DIR}"
+          }
+          trap cleanup EXIT
+
+          GOBIN="${GOBIN_DIR}" go install "github.com/mikefarah/yq/v4@${YQ_VERSION}"
+          sudo install -m 0755 "${GOBIN_DIR}/yq" /usr/local/bin/yq
+          yq --version
+
+      - name: Run v1 config template tests
+        run: bash tests/test_v1_config.sh
 
       - name: Lint chart
         id: helm-lint

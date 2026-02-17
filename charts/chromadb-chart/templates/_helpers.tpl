@@ -203,6 +203,9 @@ Build the server config dict for the v1-config ConfigMap.
   {{- $_ := set $config "open_telemetry" $otel -}}
 {{- end -}}
 {{- with .Values.chromadb.extraConfig -}}
+  {{- if not (kindIs "map" .) -}}
+    {{- fail "chromadb.extraConfig must be a map/object" -}}
+  {{- end -}}
   {{- $config = mergeOverwrite $config . -}}
 {{- end -}}
 {{- if ne (get $config "port" | int) ($port) -}}
