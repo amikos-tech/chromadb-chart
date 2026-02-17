@@ -132,6 +132,7 @@ Build the server config dict for the v1-config ConfigMap.
 {{- if le $maxPayload 0 -}}
   {{- fail (printf "chromadb.maxPayloadSizeBytes must be a positive integer, got: %v" .Values.chromadb.maxPayloadSizeBytes) -}}
 {{- end -}}
+{{- $isV1 := semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .) -}}
 {{- $config := dict -}}
 {{- $_ := set $config "port" $port -}}
 {{- $_ := set $config "listen_address" .Values.chromadb.serverHost -}}
@@ -141,11 +142,64 @@ Build the server config dict for the v1-config ConfigMap.
 {{- if .Values.chromadb.corsAllowOrigins -}}
   {{- $_ := set $config "cors_allow_origins" .Values.chromadb.corsAllowOrigins -}}
 {{- end -}}
+{{- if $isV1 -}}
+  {{- with .Values.chromadb.sqliteFilename -}}
+    {{- $_ := set $config "sqlite_filename" . -}}
+  {{- end -}}
+  {{- $sqlitedb := dict -}}
+  {{- $sqliteHashType := .Values.chromadb.sqliteDb.hashType | default "" -}}
+  {{- if $sqliteHashType -}}
+    {{- $sqliteHashType = lower $sqliteHashType -}}
+    {{- if not (or (eq $sqliteHashType "md5") (eq $sqliteHashType "sha256")) -}}
+      {{- fail (printf "chromadb.sqliteDb.hashType must be one of: md5, sha256 (got %q)" .Values.chromadb.sqliteDb.hashType) -}}
+    {{- end -}}
+    {{- $_ := set $sqlitedb "hash_type" $sqliteHashType -}}
+  {{- end -}}
+  {{- $sqliteMigrationMode := .Values.chromadb.sqliteDb.migrationMode | default "" -}}
+  {{- if $sqliteMigrationMode -}}
+    {{- $sqliteMigrationMode = lower $sqliteMigrationMode -}}
+    {{- if not (or (eq $sqliteMigrationMode "apply") (eq $sqliteMigrationMode "validate")) -}}
+      {{- fail (printf "chromadb.sqliteDb.migrationMode must be one of: apply, validate (got %q)" .Values.chromadb.sqliteDb.migrationMode) -}}
+    {{- end -}}
+    {{- $_ := set $sqlitedb "migration_mode" $sqliteMigrationMode -}}
+  {{- end -}}
+  {{- if gt (len $sqlitedb) 0 -}}
+    {{- $_ := set $config "sqlitedb" $sqlitedb -}}
+  {{- end -}}
+  {{- $circuitBreakerRequestsRaw := .Values.chromadb.circuitBreaker.requests -}}
+  {{- if ne $circuitBreakerRequestsRaw nil -}}
+    {{- $circuitBreakerRequestsStr := toString $circuitBreakerRequestsRaw -}}
+    {{- if not (regexMatch "^-?[0-9]+$" $circuitBreakerRequestsStr) -}}
+      {{- fail (printf "chromadb.circuitBreaker.requests must be an integer >= 0 (got %q)" $circuitBreakerRequestsStr) -}}
+    {{- end -}}
+    {{- $circuitBreakerRequests := atoi $circuitBreakerRequestsStr -}}
+    {{- if lt $circuitBreakerRequests 0 -}}
+      {{- fail (printf "chromadb.circuitBreaker.requests must be >= 0 (got %d)" $circuitBreakerRequests) -}}
+    {{- end -}}
+    {{- $_ := set $config "circuit_breaker" (dict "requests" $circuitBreakerRequests) -}}
+  {{- end -}}
+  {{- with .Values.chromadb.segmentManager.hnswIndexPoolCacheConfig -}}
+    {{- if not (kindIs "map" .) -}}
+      {{- fail "chromadb.segmentManager.hnswIndexPoolCacheConfig must be a map/object" -}}
+    {{- end -}}
+    {{- $_ := set $config "segment_manager" (dict "hnsw_index_pool_cache_config" .) -}}
+  {{- end -}}
+  {{- if and (hasKey .Values.chromadb.telemetry "filters") (not (kindIs "slice" .Values.chromadb.telemetry.filters)) -}}
+    {{- fail "chromadb.telemetry.filters must be a list" -}}
+  {{- end -}}
+{{- end -}}
+{{- $otel := dict -}}
 {{- if .Values.chromadb.telemetry.enabled -}}
   {{- if not .Values.chromadb.telemetry.endpoint -}}
     {{- fail "chromadb.telemetry.endpoint must be set when chromadb.telemetry.enabled is true" -}}
   {{- end -}}
-  {{- $otel := dict "service_name" .Values.chromadb.telemetry.serviceName "endpoint" .Values.chromadb.telemetry.endpoint -}}
+  {{- $_ := set $otel "service_name" .Values.chromadb.telemetry.serviceName -}}
+  {{- $_ := set $otel "endpoint" .Values.chromadb.telemetry.endpoint -}}
+{{- end -}}
+{{- if and $isV1 .Values.chromadb.telemetry.filters -}}
+  {{- $_ := set $otel "filters" .Values.chromadb.telemetry.filters -}}
+{{- end -}}
+{{- if gt (len $otel) 0 -}}
   {{- $_ := set $config "open_telemetry" $otel -}}
 {{- end -}}
 {{- with .Values.chromadb.extraConfig -}}

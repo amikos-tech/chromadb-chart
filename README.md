@@ -101,6 +101,12 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.telemetry.enabled`                        | boolean | `false`                               | Enables chroma to send OTEL telemetry                                                                                                                                                                                                                                                                      |
 | `chromadb.telemetry.endpoint`                       | string  | ``                                    | OTEL collector endpoint e.g. "http://otel-collector:4317"                                                                                                                                                                                                                                                  |
 | `chromadb.telemetry.serviceName`                    | string  | `chroma`                              | The service name that will show up in traces.                                                                                                                                                                                                                                                              |
+| `chromadb.telemetry.filters`                        | list    | `[]`                                  | Optional `open_telemetry.filters` entries for per-crate trace filtering in Chroma >= 1.0.0.                                                                                                                                                                                                                |
+| `chromadb.sqliteFilename`                           | string  | `""`                                  | Optional `sqlite_filename` for Chroma >= 1.0.0. Empty means server default (`chroma.sqlite3`).                                                                                                                                                                                                             |
+| `chromadb.sqliteDb.hashType`                        | string  | `""`                                  | Optional `sqlitedb.hash_type` (`md5` or `sha256`) for Chroma >= 1.0.0. Empty means server default (`md5`).                                                                                                                                                                                                 |
+| `chromadb.sqliteDb.migrationMode`                   | string  | `""`                                  | Optional `sqlitedb.migration_mode` (`apply` or `validate`) for Chroma >= 1.0.0. Empty means server default (`apply`).                                                                                                                                                                                      |
+| `chromadb.circuitBreaker.requests`                  | int     | `null`                                | Optional `circuit_breaker.requests` for Chroma >= 1.0.0. Set `0` to disable; `null` leaves server default (`0`).                                                                                                                                                                                            |
+| `chromadb.segmentManager.hnswIndexPoolCacheConfig`  | object  | `{}`                                  | Optional `segment_manager.hnsw_index_pool_cache_config` object for Chroma >= 1.0.0.                                                                                                                                                                                                                         |
 | `imagePullSecrets`                                  | list    | `[]`                                  | List of image pull secrets for the ChromaDB pod (e.g. `[{name: "my-secret"}]`).                                                                                                                                                                                                                            |
 | `global.imagePullSecrets`                           | list    | `[]`                                  | Global image pull secrets shared across all subcharts. Merged with `imagePullSecrets`.                                                                                                                                                                                                                     |
 | `chromadb.extraConfig`                              | object  | `{}`                                  | Extra config keys merged into the v1 server config (>= 1.0.0). Overrides chart-managed keys. See [Extra Config](#extra-config).                                                                                                                                                                           |
@@ -244,6 +250,37 @@ Then, run `helm dependency update` to install the chart.
 
 When using as a subchart, `global.imagePullSecrets` lets you define pull secrets once in the parent chart and have them propagated to all subcharts (including ChromaDB). Chart-level `imagePullSecrets` only applies to this chart. Both lists are merged, so there is no conflict if the same secret appears in both — though it may appear as a duplicate, Kubernetes handles this gracefully.
 
+## Rust v1 Config Options
+
+For Chroma >= 1.0.0 (Rust server), these dedicated values map directly to the server config:
+
+- `chromadb.sqliteFilename` -> `sqlite_filename`
+- `chromadb.sqliteDb.hashType` -> `sqlitedb.hash_type`
+- `chromadb.sqliteDb.migrationMode` -> `sqlitedb.migration_mode`
+- `chromadb.circuitBreaker.requests` -> `circuit_breaker.requests`
+- `chromadb.telemetry.filters` -> `open_telemetry.filters`
+- `chromadb.segmentManager.hnswIndexPoolCacheConfig` -> `segment_manager.hnsw_index_pool_cache_config`
+
+Example:
+
+```yaml
+chromadb:
+  sqliteFilename: "custom.db"
+  sqliteDb:
+    hashType: "sha256"
+    migrationMode: "validate"
+  circuitBreaker:
+    requests: 500
+  telemetry:
+    filters:
+      - crate_name: "chroma_frontend"
+        filter_level: "info"
+  segmentManager:
+    hnswIndexPoolCacheConfig:
+      policy: "memory"
+      capacity: 65536
+```
+
 ## Extra Config
 
 For Chroma >= 1.0.0 (Rust server), `chromadb.extraConfig` lets you inject arbitrary config keys into the server's YAML
@@ -252,20 +289,19 @@ config file. This is useful for setting options not yet exposed as dedicated cha
 ```yaml
 chromadb:
   extraConfig:
-    circuit_breaker:
-      requests: 500
-    sqlite_filename: "custom.db"
-    open_telemetry:
-      filters:
-        - crate_name: "chroma_frontend"
-          filter_level: "info"
+    compactor:
+      disabled_collections: []
 ```
 
 > [!WARNING]
-> Keys in `extraConfig` override chart-managed keys of the same name. Overriding `port` or
-> `listen_address` via `extraConfig` is **not allowed** and will cause template rendering to fail.
-> Use `chromadb.serverHttpPort` and `chromadb.serverHost` instead so that the Service, container
-> port, and health probes remain in sync.
+> Keys in `extraConfig` override chart-managed and dedicated keys of the same name.
+> Dedicated value validation (for example enum/range checks on `sqlitedb` and `circuit_breaker`)
+> is applied before `extraConfig` merge, so overrides in `extraConfig` are treated as advanced
+> escape hatches and are not re-validated by the chart.
+>
+> Overriding `port` or `listen_address` via `extraConfig` is **not allowed** and will cause
+> template rendering to fail. Use `chromadb.serverHttpPort` and `chromadb.serverHost` instead
+> so that the Service, container port, and health probes remain in sync.
 
 ## References
 

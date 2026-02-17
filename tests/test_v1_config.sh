@@ -85,6 +85,10 @@ assert_config_key "persist_path defaults to /data" "$config" "persist_path" "/da
 assert_config_key "allow_reset defaults to false" "$config" "allow_reset" "false"
 assert_config_key_missing "cors_allow_origins absent when empty" "$config" "cors_allow_origins"
 assert_config_key_missing "open_telemetry absent when disabled" "$config" "open_telemetry"
+assert_config_key_missing "sqlite_filename absent by default" "$config" "sqlite_filename"
+assert_config_key_missing "sqlitedb absent by default" "$config" "sqlitedb"
+assert_config_key_missing "circuit_breaker absent by default" "$config" "circuit_breaker"
+assert_config_key_missing "segment_manager absent by default" "$config" "segment_manager"
 
 echo ""
 echo "2. CORS wildcard (should work)"
@@ -175,6 +179,98 @@ echo ""
 echo "15. Custom serverHttpPort on >= 1.0.0 does not create legacy env var"
 server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=1.5.0' --set 'chromadb.serverHttpPort=9000')
 assert_equal "CHROMA_SERVER_HTTP_PORT remains absent on >= 1.0.0 with custom port" "$server_http_port_env" "null"
+
+echo ""
+echo "16. Dedicated sqlite/sqlitedb/circuit breaker options"
+config=$(get_v1_config \
+  --set 'chromadb.sqliteFilename=custom.sqlite3' \
+  --set 'chromadb.sqliteDb.hashType=sha256' \
+  --set 'chromadb.sqliteDb.migrationMode=validate' \
+  --set 'chromadb.circuitBreaker.requests=500')
+assert_config_key "sqlite_filename from dedicated value" "$config" "sqlite_filename" "custom.sqlite3"
+assert_config_key "sqlitedb.hash_type from dedicated value" "$config" "sqlitedb.hash_type" "sha256"
+assert_config_key "sqlitedb.migration_mode from dedicated value" "$config" "sqlitedb.migration_mode" "validate"
+assert_config_key "circuit_breaker.requests from dedicated value" "$config" "circuit_breaker.requests" "500"
+
+echo ""
+echo "17. Dedicated telemetry filters"
+config=$(get_v1_config \
+  --set 'chromadb.telemetry.filters[0].crate_name=chroma_frontend' \
+  --set 'chromadb.telemetry.filters[0].filter_level=info')
+assert_config_key "otel filters crate_name from dedicated value" "$config" "open_telemetry.filters[0].crate_name" "chroma_frontend"
+assert_config_key "otel filters filter_level from dedicated value" "$config" "open_telemetry.filters[0].filter_level" "info"
+assert_config_key_missing "otel endpoint absent when telemetry disabled" "$config" "open_telemetry.endpoint"
+
+echo ""
+echo "18. Dedicated segment manager cache config"
+config=$(get_v1_config \
+  --set 'chromadb.segmentManager.hnswIndexPoolCacheConfig.policy=memory' \
+  --set 'chromadb.segmentManager.hnswIndexPoolCacheConfig.capacity=65536')
+assert_config_key "segment_manager cache policy from dedicated value" "$config" "segment_manager.hnsw_index_pool_cache_config.policy" "memory"
+assert_config_key "segment_manager cache capacity from dedicated value" "$config" "segment_manager.hnsw_index_pool_cache_config.capacity" "65536"
+
+echo ""
+echo "19. Invalid sqliteDb.hashType fails"
+assert_template_fails "sqliteDb.hashType rejects invalid enum value" \
+  --set 'chromadb.sqliteDb.hashType=sha1'
+
+echo ""
+echo "20. Invalid sqliteDb.migrationMode fails"
+assert_template_fails "sqliteDb.migrationMode rejects invalid enum value" \
+  --set 'chromadb.sqliteDb.migrationMode=skip'
+
+echo ""
+echo "21. Negative circuitBreaker.requests fails"
+assert_template_fails "circuitBreaker.requests rejects negative value" \
+  --set 'chromadb.circuitBreaker.requests=-1'
+
+echo ""
+echo "22. circuitBreaker.requests accepts 0 (disable)"
+config=$(get_v1_config --set 'chromadb.circuitBreaker.requests=0')
+assert_config_key "circuit_breaker.requests allows zero" "$config" "circuit_breaker.requests" "0"
+
+echo ""
+echo "23. sqliteDb enums are case-normalized"
+config=$(get_v1_config \
+  --set 'chromadb.sqliteDb.hashType=SHA256' \
+  --set 'chromadb.sqliteDb.migrationMode=Validate')
+assert_config_key "sqlitedb.hash_type lowercased" "$config" "sqlitedb.hash_type" "sha256"
+assert_config_key "sqlitedb.migration_mode lowercased" "$config" "sqlitedb.migration_mode" "validate"
+
+echo ""
+echo "24. telemetry.enabled with filters renders all OTEL fields"
+config=$(get_v1_config \
+  --set 'chromadb.telemetry.enabled=true' \
+  --set 'chromadb.telemetry.endpoint=http://otel:4317' \
+  --set 'chromadb.telemetry.serviceName=my-chroma' \
+  --set 'chromadb.telemetry.filters[0].crate_name=chroma_frontend' \
+  --set 'chromadb.telemetry.filters[0].filter_level=debug')
+assert_config_key "otel endpoint with filters" "$config" "open_telemetry.endpoint" "http://otel:4317"
+assert_config_key "otel service_name with filters" "$config" "open_telemetry.service_name" "my-chroma"
+assert_config_key "otel filters with telemetry enabled" "$config" "open_telemetry.filters[0].filter_level" "debug"
+
+echo ""
+echo "25. extraConfig overrides dedicated values for the same key"
+config=$(get_v1_config \
+  --set 'chromadb.sqliteDb.hashType=sha256' \
+  --set 'chromadb.extraConfig.sqlitedb.hash_type=md5')
+assert_config_key "extraConfig wins over dedicated sqlitedb.hash_type" "$config" "sqlitedb.hash_type" "md5"
+
+echo ""
+echo "26. Rust v1-only dedicated values are ignored on < 1.0.0"
+config=$(get_v1_config \
+  --set 'chromadb.apiVersion=0.6.3' \
+  --set 'chromadb.sqliteFilename=custom.sqlite3' \
+  --set 'chromadb.sqliteDb.hashType=sha256' \
+  --set 'chromadb.sqliteDb.migrationMode=validate' \
+  --set 'chromadb.circuitBreaker.requests=500' \
+  --set 'chromadb.telemetry.filters[0].crate_name=chroma_frontend' \
+  --set 'chromadb.segmentManager.hnswIndexPoolCacheConfig.capacity=65536')
+assert_config_key_missing "sqlite_filename omitted on < 1.0.0" "$config" "sqlite_filename"
+assert_config_key_missing "sqlitedb omitted on < 1.0.0" "$config" "sqlitedb"
+assert_config_key_missing "circuit_breaker omitted on < 1.0.0" "$config" "circuit_breaker"
+assert_config_key_missing "segment_manager omitted on < 1.0.0" "$config" "segment_manager"
+assert_config_key_missing "otel filters omitted on < 1.0.0" "$config" "open_telemetry.filters"
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"

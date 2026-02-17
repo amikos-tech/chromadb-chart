@@ -137,6 +137,16 @@ chromadb:
     enabled: false
     endpoint: ""
     serviceName: "chroma"
+    filters: []
+  # Rust v1 config options (>= 1.0.0)
+  sqliteFilename: ""
+  sqliteDb:
+    hashType: "" # supported values: md5, sha256
+    migrationMode: "" # supported values: apply, validate
+  circuitBreaker:
+    requests: null # 0 disables the circuit breaker
+  segmentManager:
+    hnswIndexPoolCacheConfig: {}
   maintenance:
     collection_cache_policy: null # possible values: null or "LRU"
     collection_cache_limit_bytes: 1000000000 # defaults to 1GB. TODO: this must also observe limits if defined
@@ -152,7 +162,5 @@ chromadb:
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
   # Extra config keys merged into the v1 server config (>= 1.0.0). Overrides chart-managed keys.
   extraConfig: {}
-    # circuit_breaker:
-    #   requests: 500
-    # sqlite_filename: "chroma.sqlite3"
-
+    # compactor:
+    #   disabled_collections: []
