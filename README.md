@@ -91,6 +91,8 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.telemetry.enabled`                        | boolean | `false`                               | Enables chroma to send OTEL telemetry                                                                                                                                                                                                                                                                      |
 | `chromadb.telemetry.endpoint`                       | string  | ``                                    | OTEL collector endpoint e.g. "http://otel-collector:4317"                                                                                                                                                                                                                                                  |
 | `chromadb.telemetry.serviceName`                    | string  | `chroma`                              | The service name that will show up in traces.                                                                                                                                                                                                                                                              |
+| `imagePullSecrets`                                  | list    | `[]`                                  | List of image pull secrets for the ChromaDB pod (e.g. `[{name: "my-secret"}]`).                                                                                                                                                                                                                            |
+| `global.imagePullSecrets`                           | list    | `[]`                                  | Global image pull secrets shared across all subcharts. Merged with `imagePullSecrets`.                                                                                                                                                                                                                     |
 | `commonLabels`                                      | object  | `{}`                                  | Additional labels applied to all chart resources (StatefulSet, Service, Ingress, ConfigMaps, Secrets, PVCs, test Jobs).                                                                                                                                                                                    |
 | `podLabels`                                         | object  | `{}`                                  | Additional labels applied to pods only. Does not affect `matchLabels`.                                                                                                                                                                                                                                     |
 
@@ -228,6 +230,8 @@ dependencies:
 ```
 
 Then, run `helm dependency update` to install the chart.
+
+When using as a subchart, `global.imagePullSecrets` lets you define pull secrets once in the parent chart and have them propagated to all subcharts (including ChromaDB). Chart-level `imagePullSecrets` only applies to this chart. Both lists are merged, so there is no conflict if the same secret appears in both — though it may appear as a duplicate, Kubernetes handles this gracefully.
 
 ## References
 
