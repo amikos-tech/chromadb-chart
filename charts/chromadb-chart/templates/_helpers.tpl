@@ -121,6 +121,30 @@ Get the chroma api version
 {{- end }}
 
 {{/*
+Build the v1 server config dict for Chroma >= 1.0.0.
+Constructs a config dict from chart values and merges any user-provided extraConfig.
+*/}}
+{{- define "chromadb.serverConfig" -}}
+{{- $config := dict -}}
+{{- $_ := set $config "port" (.Values.chromadb.serverHttpPort | int) -}}
+{{- $_ := set $config "listen_address" .Values.chromadb.serverHost -}}
+{{- $_ := set $config "max_payload_size_bytes" (.Values.chromadb.maxPayloadSizeBytes | int64) -}}
+{{- $_ := set $config "persist_path" .Values.chromadb.persistDirectory -}}
+{{- $_ := set $config "allow_reset" .Values.chromadb.allowReset -}}
+{{- if .Values.chromadb.corsAllowOrigins -}}
+  {{- $_ := set $config "cors_allow_origins" .Values.chromadb.corsAllowOrigins -}}
+{{- end -}}
+{{- if .Values.chromadb.telemetry.enabled -}}
+  {{- $otel := dict "service_name" .Values.chromadb.telemetry.serviceName "endpoint" .Values.chromadb.telemetry.endpoint -}}
+  {{- $_ := set $config "open_telemetry" $otel -}}
+{{- end -}}
+{{- with .Values.chromadb.extraConfig -}}
+  {{- $config = mergeOverwrite $config . -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}
+
+{{/*
 Get the Chroma auth token header type
 */}}
 {{- define "chromadb.auth.token.headerType" -}}
