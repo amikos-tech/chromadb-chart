@@ -39,8 +39,8 @@ python tests/test_chroma.py
 helm test chromadb
 
 # GitHub Actions integration tests run on:
-# - Kubernetes versions: 1.23.0, 1.33.1
-# - Chroma versions: 0.6.3, 1.0.10
+# - Kubernetes versions: 1.28.0, 1.33.1, 1.35.1
+# - Chroma versions: 0.6.3, 1.5.0
 ```
 
 ### Local Development with Minikube
@@ -86,7 +86,7 @@ The chart supports multiple ChromaDB versions from 0.4.3 to 1.0.x with version-s
 
 ## Important Notes
 
-- Default ChromaDB version is 1.0.10 (as of chart version 0.1.24)
+- Default ChromaDB version is 1.5.0 (as of chart version 0.1.25)
 - Authentication is NOT supported in ChromaDB 1.0.x - use network-level security or API gateway
 - Data persistence is enabled by default at `/data` directory
 - Anonymous telemetry is disabled by default for privacy
