@@ -121,6 +121,46 @@ Get the chroma api version
 {{- end }}
 
 {{/*
+Build the server config dict for the v1-config ConfigMap.
+*/}}
+{{- define "chromadb.serverConfig" -}}
+{{- $port := .Values.chromadb.serverHttpPort | int -}}
+{{- if le $port 0 -}}
+  {{- fail (printf "chromadb.serverHttpPort must be a positive integer, got: %v" .Values.chromadb.serverHttpPort) -}}
+{{- end -}}
+{{- $maxPayload := .Values.chromadb.maxPayloadSizeBytes | int64 -}}
+{{- if le $maxPayload 0 -}}
+  {{- fail (printf "chromadb.maxPayloadSizeBytes must be a positive integer, got: %v" .Values.chromadb.maxPayloadSizeBytes) -}}
+{{- end -}}
+{{- $config := dict -}}
+{{- $_ := set $config "port" $port -}}
+{{- $_ := set $config "listen_address" .Values.chromadb.serverHost -}}
+{{- $_ := set $config "max_payload_size_bytes" $maxPayload -}}
+{{- $_ := set $config "persist_path" .Values.chromadb.persistDirectory -}}
+{{- $_ := set $config "allow_reset" .Values.chromadb.allowReset -}}
+{{- if .Values.chromadb.corsAllowOrigins -}}
+  {{- $_ := set $config "cors_allow_origins" .Values.chromadb.corsAllowOrigins -}}
+{{- end -}}
+{{- if .Values.chromadb.telemetry.enabled -}}
+  {{- if not .Values.chromadb.telemetry.endpoint -}}
+    {{- fail "chromadb.telemetry.endpoint must be set when chromadb.telemetry.enabled is true" -}}
+  {{- end -}}
+  {{- $otel := dict "service_name" .Values.chromadb.telemetry.serviceName "endpoint" .Values.chromadb.telemetry.endpoint -}}
+  {{- $_ := set $config "open_telemetry" $otel -}}
+{{- end -}}
+{{- with .Values.chromadb.extraConfig -}}
+  {{- $config = mergeOverwrite $config . -}}
+{{- end -}}
+{{- if ne (get $config "port" | int) ($port) -}}
+  {{- fail (printf "extraConfig.port (%v) conflicts with chromadb.serverHttpPort (%v) — update serverHttpPort instead" (get $config "port") $.Values.chromadb.serverHttpPort) -}}
+{{- end -}}
+{{- if ne (get $config "listen_address") .Values.chromadb.serverHost -}}
+  {{- fail (printf "extraConfig.listen_address (%s) conflicts with chromadb.serverHost (%s) — update serverHost instead" (get $config "listen_address") .Values.chromadb.serverHost) -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}
+
+{{/*
 Get the Chroma auth token header type
 */}}
 {{- define "chromadb.auth.token.headerType" -}}

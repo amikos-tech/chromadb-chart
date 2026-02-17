@@ -63,12 +63,12 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 
 | Key                                                 | Type    | Default                               | Description                                                                                                                                                                                                                                                                                                |
 |-----------------------------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`                               | string  | `1.0.10` (Chart app version)          | The ChromaDB version. Supported version `0.4.3` - `1.0.x`                                                                                                                                                                                                                                                  |
+| `chromadb.apiVersion`                               | string  | `1.5.0` (Chart app version)           | The ChromaDB version. Supported version `0.4.3` - `1.x`                                                                                                                                                                                                                                                    |
 | `chromadb.allowReset`                               | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                                                                                                                                               |
 | `chromadb.isPersistent`                             | boolean | `true`                                | A flag to control whether data is persisted                                                                                                                                                                                                                                                                |
 | `chromadb.persistDirectory`                         | string  | `/data`                               | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                                                                                                                                        |
 | `chromadb.anonymizedTelemetry`                      | boolean | `false`                               | The flag to send anonymized stats using posthog. By default this is enabled in the chromadb however for user's privacy we have disabled it so it is opt-in                                                                                                                                                 |
-| `chromadb.corsAllowOrigins`                         | list    | N/A                                   | The CORS config. Wildcard ["*"] is not supported in version 1.0.0 or later.                                                                                                                                                                                                                                |
+| `chromadb.corsAllowOrigins`                         | list    | `[]`                                  | List of allowed CORS origins. Wildcard `["*"]` is supported.                                                                                                                                                                                                                                               |
 | `chromadb.apiImpl`                                  | string  | `- "chromadb.api.segment.SegmentAPI"` | The default API impl. It uses SegmentAPI however FastAPI is also available. Note: FastAPI seems to be bugging so we discourage users to use it in releases prior or equal to 0.4.3 Deprecated in since 0.1.23 (will be removed in 0.2.0)                                                                   |
 | `chromadb.serverHost`                               | string  | `0.0.0.0`                             | The API server host.                                                                                                                                                                                                                                                                                       |
 | `chromadb.serverHttpPort`                           | int     | `8000`                                | The API server port.                                                                                                                                                                                                                                                                                       |
@@ -103,6 +103,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | `chromadb.telemetry.serviceName`                    | string  | `chroma`                              | The service name that will show up in traces.                                                                                                                                                                                                                                                              |
 | `imagePullSecrets`                                  | list    | `[]`                                  | List of image pull secrets for the ChromaDB pod (e.g. `[{name: "my-secret"}]`).                                                                                                                                                                                                                            |
 | `global.imagePullSecrets`                           | list    | `[]`                                  | Global image pull secrets shared across all subcharts. Merged with `imagePullSecrets`.                                                                                                                                                                                                                     |
+| `chromadb.extraConfig`                              | object  | `{}`                                  | Extra config keys merged into the v1 server config (>= 1.0.0). Overrides chart-managed keys. See [Extra Config](#extra-config).                                                                                                                                                                           |
 | `commonLabels`                                      | object  | `{}`                                  | Additional labels applied to all chart resources (StatefulSet, Service, Ingress, ConfigMaps, Secrets, PVCs, test Jobs).                                                                                                                                                                                    |
 | `podLabels`                                         | object  | `{}`                                  | Additional labels applied to pods only. Does not affect `matchLabels`.                                                                                                                                                                                                                                     |
 
@@ -242,6 +243,29 @@ dependencies:
 Then, run `helm dependency update` to install the chart.
 
 When using as a subchart, `global.imagePullSecrets` lets you define pull secrets once in the parent chart and have them propagated to all subcharts (including ChromaDB). Chart-level `imagePullSecrets` only applies to this chart. Both lists are merged, so there is no conflict if the same secret appears in both — though it may appear as a duplicate, Kubernetes handles this gracefully.
+
+## Extra Config
+
+For Chroma >= 1.0.0 (Rust server), `chromadb.extraConfig` lets you inject arbitrary config keys into the server's YAML
+config file. This is useful for setting options not yet exposed as dedicated chart values.
+
+```yaml
+chromadb:
+  extraConfig:
+    circuit_breaker:
+      requests: 500
+    sqlite_filename: "custom.db"
+    open_telemetry:
+      filters:
+        - crate_name: "chroma_frontend"
+          filter_level: "info"
+```
+
+> [!WARNING]
+> Keys in `extraConfig` override chart-managed keys of the same name. Overriding `port` or
+> `listen_address` via `extraConfig` is **not allowed** and will cause template rendering to fail.
+> Use `chromadb.serverHttpPort` and `chromadb.serverHost` instead so that the Service, container
+> port, and health probes remain in sync.
 
 ## References
 

@@ -124,7 +124,7 @@ chromadb:
     chromadb: "DEBUG"
     uvicorn: "INFO"
   anonymizedTelemetry: false
-  corsAllowOrigins: [] # as of version 1.0.x * is not allowed
+  corsAllowOrigins: []
   serverHost: "0.0.0.0"
   serverHttpPort: 8000
   maxPayloadSizeBytes: "41943040"
@@ -150,4 +150,9 @@ chromadb:
     token:
       headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
+  # Extra config keys merged into the v1 server config (>= 1.0.0). Overrides chart-managed keys.
+  extraConfig: {}
+    # circuit_breaker:
+    #   requests: 500
+    # sqlite_filename: "chroma.sqlite3"
 
