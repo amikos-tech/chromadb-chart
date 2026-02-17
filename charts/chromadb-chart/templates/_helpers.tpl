@@ -41,7 +41,7 @@ Returns the proper image name.
 {{- if not .Values.image.tag -}}
   {{ if .Values.chromadb.apiVersion -}}
     {{- $termination = .Values.chromadb.apiVersion | toString -}}
-  {{- else if .Chart -}}
+  {{- else -}}
     {{- $termination = .Chart.AppVersion | toString -}}
   {{- end -}}
 {{- end -}}

@@ -3,22 +3,23 @@
 # Declare variables to be passed into your templates.
 global:
   imageRegistry: ""
-
-
-global:
   imagePullSecrets: [ ]
 
 replicaCount: 1
 
 image:
+  registry: ""
   repository: ghcr.io/chroma-core/chroma
   tag: ""
+  digest: ""
   pullPolicy: IfNotPresent
 
 # initContainer image
 initImage:
+  registry: ""
   repository: docker.io/httpd
   tag: "2"
+  digest: ""
   pullPolicy: IfNotPresent
 
 imagePullSecrets: [ ]
