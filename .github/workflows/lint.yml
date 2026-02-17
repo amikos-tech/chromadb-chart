@@ -30,31 +30,23 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+
       - name: Install yq
         run: |
           set -euo pipefail
           YQ_VERSION="v4.44.6"
-          YQ_BIN="yq_linux_amd64"
-          YQ_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BIN}"
-          YQ_CHECKSUMS_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums"
-          TMP_YQ="$(mktemp)"
-          TMP_CHECKSUMS="$(mktemp)"
+          GOBIN_DIR="$(mktemp -d)"
           cleanup() {
-            rm -f "${TMP_YQ}" "${TMP_CHECKSUMS}"
+            rm -rf "${GOBIN_DIR}"
           }
           trap cleanup EXIT
 
-          wget -nv -O "${TMP_YQ}" "${YQ_URL}"
-          wget -nv -O "${TMP_CHECKSUMS}" "${YQ_CHECKSUMS_URL}"
-
-          if ! EXPECTED_SHA="$(awk -v bin="${YQ_BIN}" '$2 == bin || $2 == ("*" bin) {print $1; found=1; exit} END {if (!found) exit 1}' "${TMP_CHECKSUMS}")"; then
-            echo "Unable to find checksum entry for ${YQ_BIN} in checksums file" >&2
-            sed -n '1,40p' "${TMP_CHECKSUMS}" >&2
-            exit 1
-          fi
-
-          echo "${EXPECTED_SHA}  ${TMP_YQ}" | sha256sum -c -
-          sudo install -m 0755 "${TMP_YQ}" /usr/local/bin/yq
+          GOBIN="${GOBIN_DIR}" go install "github.com/mikefarah/yq/v4@${YQ_VERSION}"
+          sudo install -m 0755 "${GOBIN_DIR}/yq" /usr/local/bin/yq
           yq --version
 
       - name: Run v1 config template tests
