@@ -29,19 +29,8 @@ assert_config_key_missing() {
   fi
 }
 
-assert_fail() {
-  local desc="$1" output="$2"
-  if echo "$output" | grep -q "Error:"; then
-    echo "  PASS: $desc"
-    PASS=$((PASS+1))
-  else
-    echo "  FAIL: $desc (expected helm template to fail)"
-    FAIL=$((FAIL+1))
-  fi
-}
-
 get_v1_config() {
-  helm template test "$CHART_DIR" "$@" 2>/dev/null \
+  helm template test "$CHART_DIR" "$@" \
     | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -
 }
 
@@ -107,6 +96,11 @@ echo ""
 echo "7. extraConfig overrides chart-managed keys"
 config=$(get_v1_config --set 'chromadb.extraConfig.port=9999')
 assert_config_key "extraConfig overrides port" "$config" "port" "9999"
+
+echo ""
+echo "8. CORS wildcard on < 1.0.0 (should also work)"
+config=$(get_v1_config --set 'chromadb.corsAllowOrigins={*}' --set 'chromadb.apiVersion=0.6.3')
+assert_config_key "cors_allow_origins wildcard for pre-1.0" "$config" "cors_allow_origins[0]" "*"
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"
