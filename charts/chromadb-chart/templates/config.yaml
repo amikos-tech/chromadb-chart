@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: log-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
 data:
   log_config.yaml: |-
       version: 1
@@ -45,6 +47,8 @@ kind: Secret
 metadata:
   name: chromadb-auth
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -67,6 +71,8 @@ kind: Secret
 metadata:
   name: chromadb-auth
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -91,6 +97,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "chart.fullname" . }}-basic-auth-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -123,6 +131,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "chart.fullname" . }}-token-auth-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -153,6 +163,8 @@ kind: ConfigMap
 metadata:
   name: v1-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
