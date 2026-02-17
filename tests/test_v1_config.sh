@@ -30,13 +30,29 @@ assert_config_key_missing() {
 }
 
 get_v1_config() {
-  helm template test "$CHART_DIR" "$@" \
-    | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -
+  local output
+  output=$(helm template test "$CHART_DIR" "$@" 2>&1) || {
+    echo "TEMPLATE_ERROR: $output" >&2
+    return 1
+  }
+  echo "$output" | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -
+}
+
+assert_template_fails() {
+  local desc="$1"; shift
+  local output
+  if output=$(helm template test "$CHART_DIR" "$@" 2>&1); then
+    echo "  FAIL: $desc (expected template to fail, but it succeeded)"
+    FAIL=$((FAIL+1))
+  else
+    echo "  PASS: $desc"
+    PASS=$((PASS+1))
+  fi
 }
 
 # --- Test suite ---
 
-echo "=== v1-config template tests (Chroma 1.5.0) ==="
+echo "=== v1-config template tests ==="
 
 echo ""
 echo "1. Default values"
@@ -50,7 +66,7 @@ assert_config_key_missing "cors_allow_origins absent when empty" "$config" "cors
 assert_config_key_missing "open_telemetry absent when disabled" "$config" "open_telemetry"
 
 echo ""
-echo "2. CORS wildcard on >= 1.0.0 (should work)"
+echo "2. CORS wildcard (should work)"
 config=$(get_v1_config --set 'chromadb.corsAllowOrigins={*}')
 assert_config_key "cors_allow_origins contains wildcard" "$config" "cors_allow_origins[0]" "*"
 
@@ -93,12 +109,22 @@ assert_config_key "sqlite_filename from extraConfig" "$config" "sqlite_filename"
 assert_config_key "port still present after merge" "$config" "port" "8000"
 
 echo ""
-echo "7. extraConfig overrides chart-managed keys"
-config=$(get_v1_config --set 'chromadb.extraConfig.port=9999')
-assert_config_key "extraConfig overrides port" "$config" "port" "9999"
+echo "7. extraConfig override of port fails"
+assert_template_fails "extraConfig.port override rejected" \
+  --set 'chromadb.extraConfig.port=9999'
 
 echo ""
-echo "8. CORS wildcard on < 1.0.0 (should also work)"
+echo "8. extraConfig override of listen_address fails"
+assert_template_fails "extraConfig.listen_address override rejected" \
+  --set 'chromadb.extraConfig.listen_address=127.0.0.1'
+
+echo ""
+echo "9. telemetry enabled without endpoint fails"
+assert_template_fails "telemetry.enabled without endpoint rejected" \
+  --set 'chromadb.telemetry.enabled=true'
+
+echo ""
+echo "10. CORS wildcard on < 1.0.0 (ConfigMap renders)"
 config=$(get_v1_config --set 'chromadb.corsAllowOrigins={*}' --set 'chromadb.apiVersion=0.6.3')
 assert_config_key "cors_allow_origins wildcard for pre-1.0" "$config" "cors_allow_origins[0]" "*"
 

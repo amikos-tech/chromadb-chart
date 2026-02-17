@@ -75,7 +75,7 @@ The chart supports multiple ChromaDB versions from 0.4.3 to 1.0.x with version-s
 - **Authentication**: Supported in versions < 1.0.0 (token auth from 0.4.8+, basic auth from 0.4.7+)
 - **Logging Configuration**: Custom log levels and config maps (versions < 1.0.0)
 - **Cache Management**: LRU cache policy configuration (versions < 1.0.0)
-- **CORS Configuration**: List-based CORS origins (wildcard not supported in 1.0.0+)
+- **CORS Configuration**: List-based CORS origins (wildcard supported for all versions)
 - **Telemetry**: OTEL telemetry support with configurable endpoints
 
 ### GitHub Workflows
