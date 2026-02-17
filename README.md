@@ -255,7 +255,7 @@ To use the chart as a dependency, add the following to your `Chart.yaml` file:
 ```yaml
 dependencies:
   - name: chromadb
-    version: 0.1.24
+    version: 0.2.0
     repository: "https://amikos-tech.github.io/chromadb-chart/"
 ```
 
