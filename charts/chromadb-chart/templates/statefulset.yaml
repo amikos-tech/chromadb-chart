@@ -117,7 +117,7 @@ spec:
               value: "{{ $bytes }}"
             {{- end }}
             {{- end }}
-            {{- if .Values.chromadb.serverHttpPort }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.serverHttpPort }}
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
