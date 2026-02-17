@@ -226,6 +226,8 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          {{- include "chart.labels" . | nindent 10 }}
       spec:
         accessModes: {{ .Values.chromadb.data.accessModes | toYaml | nindent 14 }}
         {{- if .Values.chromadb.data.storageClass }}
