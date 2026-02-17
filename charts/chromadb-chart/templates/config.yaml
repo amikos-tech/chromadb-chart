@@ -1,3 +1,5 @@
+{{- $isLegacy := semverCompare "< 1.0.0" (include "chromadb.apiVersion" .) -}}
+{{- if $isLegacy }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -40,8 +42,9 @@ data:
           level: {{ .Values.chromadb.logging.chromadb | upper | default "DEBUG" }}
         uvicorn:
           level: {{ .Values.chromadb.logging.uvicorn | upper | default "INFO" }}
+{{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") (eq .Values.chromadb.auth.existingSecret "") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -65,7 +68,7 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
+{{- if and $isLegacy (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -91,7 +94,7 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -125,7 +128,7 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

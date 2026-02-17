@@ -115,14 +115,21 @@ startupProbe:
 
 chromadb:
   allowReset: false
+  # < 1.0.0: also sets IS_PERSISTENT for the Python server.
+  # >= 1.0.0: controls only PVC creation/mounting; the Rust server still writes to disk,
+  # but persistence is ephemeral if no PVC is mounted.
   isPersistent: true
   persistDirectory: /data
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logConfigFileLocation: /chroma/log_config.yaml
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logConfigMap: null
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logging:
     root: "INFO"
     chromadb: "DEBUG"
     uvicorn: "INFO"
+  # Legacy (< 1.0.0): ignored for >= 1.0.0. Use chromadb.telemetry.* (OTEL) instead.
   anonymizedTelemetry: false
   corsAllowOrigins: []
   serverHost: "0.0.0.0"
@@ -147,10 +154,12 @@ chromadb:
     requests: null # 0 disables the circuit breaker
   segmentManager:
     hnswIndexPoolCacheConfig: {}
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   maintenance:
     collection_cache_policy: null # possible values: null or "LRU"
-    collection_cache_limit_bytes: 1000000000 # defaults to 1GB. TODO: this must also observe limits if defined
-  auth: # not working in 1.0.x
+    collection_cache_limit_bytes: 1000000000 # defaults to 1GB
+  # Legacy (< 1.0.0): the Rust server (>= 1.0.0) does not use these Python-era auth settings.
+  auth:
     enabled: true
     type: "token" # possible values: basic, token
     existingSecret: ""
