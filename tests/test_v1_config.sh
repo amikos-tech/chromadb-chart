@@ -31,11 +31,17 @@ assert_config_key_missing() {
 
 get_v1_config() {
   local output
+  local config
   output=$(helm template test "$CHART_DIR" "$@" 2>&1) || {
     echo "TEMPLATE_ERROR: $output" >&2
     return 1
   }
-  echo "$output" | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -
+  config=$(echo "$output" | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -)
+  if [ -z "${config}" ] || [ "${config}" = "null" ]; then
+    echo "TEMPLATE_ERROR: v1-config ConfigMap not found in rendered output" >&2
+    return 1
+  fi
+  echo "$config"
 }
 
 get_statefulset_env_value() {
@@ -271,6 +277,16 @@ assert_config_key_missing "sqlitedb omitted on < 1.0.0" "$config" "sqlitedb"
 assert_config_key_missing "circuit_breaker omitted on < 1.0.0" "$config" "circuit_breaker"
 assert_config_key_missing "segment_manager omitted on < 1.0.0" "$config" "segment_manager"
 assert_config_key_missing "otel filters omitted on < 1.0.0" "$config" "open_telemetry.filters"
+
+echo ""
+echo "27. extraConfig must be a map/object"
+assert_template_fails "extraConfig rejects list values" \
+  --set 'chromadb.extraConfig[0]=invalid'
+
+echo ""
+echo "28. extraConfig must reject scalar values"
+assert_template_fails "extraConfig rejects scalar string values" \
+  --set 'chromadb.extraConfig=invalid'
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"

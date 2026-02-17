@@ -6,6 +6,8 @@ on:
       - '**'
     paths:
       - charts/**
+      - tests/**
+      - .github/workflows/lint.yml
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
@@ -27,6 +29,32 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
+
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.44.6"
+          YQ_BIN="yq_linux_amd64"
+          YQ_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BIN}"
+          YQ_CHECKSUMS_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums"
+          TMP_YQ="$(mktemp)"
+          TMP_CHECKSUMS="$(mktemp)"
+
+          wget -qO "${TMP_YQ}" "${YQ_URL}"
+          wget -qO "${TMP_CHECKSUMS}" "${YQ_CHECKSUMS_URL}"
+
+          EXPECTED_SHA="$(grep " ${YQ_BIN}$" "${TMP_CHECKSUMS}" | awk '{print $1}')"
+          if [ -z "${EXPECTED_SHA}" ]; then
+            echo "Unable to find checksum entry for ${YQ_BIN}" >&2
+            exit 1
+          fi
+
+          echo "${EXPECTED_SHA}  ${TMP_YQ}" | sha256sum -c -
+          sudo install -m 0755 "${TMP_YQ}" /usr/local/bin/yq
+          yq --version
+
+      - name: Run v1 config template tests
+        run: bash tests/test_v1_config.sh
 
       - name: Lint chart
         id: helm-lint
