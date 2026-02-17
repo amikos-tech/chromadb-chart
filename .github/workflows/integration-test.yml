@@ -22,7 +22,7 @@ jobs:
   integration-test:
     strategy:
       matrix:
-        kubernetes-version: [1.23.0, 1.33.1]
+        kubernetes-version: [1.28.0, 1.33.1, 1.35.1]
         chroma-version:
           [
             0.6.3,

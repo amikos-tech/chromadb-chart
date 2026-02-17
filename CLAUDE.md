@@ -39,7 +39,7 @@ python tests/test_chroma.py
 helm test chromadb
 
 # GitHub Actions integration tests run on:
-# - Kubernetes versions: 1.23.0, 1.33.1
+# - Kubernetes versions: 1.28.0, 1.33.1, 1.35.1
 # - Chroma versions: 0.6.3, 1.5.0
 ```
 
