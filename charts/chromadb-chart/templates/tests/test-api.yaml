@@ -19,9 +19,9 @@ spec:
           args:
             - '-v'
             - 'http://{{ include "chart.fullname" . }}:{{ .Values.chromadb.serverHttpPort }}/api/v1/collections'
-            {{- if eq .Values.chromadb.auth.type "token" }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- $existingConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace (include "chart.fullname" . | printf "%s-token-auth-config")) }}
-            {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }} # TODO support existing secret
+            {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }}
             {{- if $existingSecret }}
             - '-H'
             {{- if eq $existingConfigMap.data.CHROMA_AUTH_TOKEN_TRANSPORT_HEADER "Authorization" }} # Authorization: Bearer
@@ -30,11 +30,10 @@ spec:
             - '{{ $existingConfigMap.data.CHROMA_AUTH_TOKEN_TRANSPORT_HEADER }}: {{ $existingSecret.data.token | b64dec }}'
             {{- end }}
             {{- end }}
-            {{- else if eq .Values.chromadb.auth.type "basic" }}
-            {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }} # TODO support existing secret
+            {{- else if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+            {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }}
             {{- if $existingSecret }}
             - '--user'
             - "{{ $existingSecret.data.username }}:{{ $existingSecret.data.password }}"
             {{- end }}
             {{- end }}
- 

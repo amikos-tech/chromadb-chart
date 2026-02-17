@@ -1,19 +1,36 @@
 # Default values for chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+global:
+  imageRegistry: ""
+  imagePullSecrets: [ ]
 
 replicaCount: 1
 
 image:
+  registry: ""
   repository: ghcr.io/chroma-core/chroma
+  tag: ""
+  digest: ""
   pullPolicy: IfNotPresent
 
 # initContainer image
-initImage: docker.io/httpd:2
+initImage:
+  registry: ""
+  repository: docker.io/httpd
+  tag: "2"
+  digest: ""
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: [ ]
 nameOverride: ""
 fullnameOverride: ""
+
+# Additional labels applied to all chart resources (e.g., for org-wide labeling)
+commonLabels: {}
+
+# Additional labels applied to pods only (e.g., for pod-level selection or monitoring)
+podLabels: {}
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -98,16 +115,23 @@ startupProbe:
 
 chromadb:
   allowReset: false
+  # < 1.0.0: also sets IS_PERSISTENT for the Python server.
+  # >= 1.0.0: controls only PVC creation/mounting; the Rust server still writes to disk,
+  # but persistence is ephemeral if no PVC is mounted.
   isPersistent: true
   persistDirectory: /data
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logConfigFileLocation: /chroma/log_config.yaml
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logConfigMap: null
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   logging:
     root: "INFO"
     chromadb: "DEBUG"
     uvicorn: "INFO"
+  # Legacy (< 1.0.0): ignored for >= 1.0.0. Use chromadb.telemetry.* (OTEL) instead.
   anonymizedTelemetry: false
-  corsAllowOrigins: [] # as of version 1.0.x * is not allowed
+  corsAllowOrigins: []
   serverHost: "0.0.0.0"
   serverHttpPort: 8000
   maxPayloadSizeBytes: "41943040"
@@ -120,10 +144,22 @@ chromadb:
     enabled: false
     endpoint: ""
     serviceName: "chroma"
+    filters: []
+  # Rust v1 config options (>= 1.0.0)
+  sqliteFilename: ""
+  sqliteDb:
+    hashType: "" # supported values: md5, sha256
+    migrationMode: "" # supported values: apply, validate
+  circuitBreaker:
+    requests: null # 0 disables the circuit breaker
+  segmentManager:
+    hnswIndexPoolCacheConfig: {}
+  # Legacy (< 1.0.0): ignored for >= 1.0.0.
   maintenance:
     collection_cache_policy: null # possible values: null or "LRU"
-    collection_cache_limit_bytes: 1000000000 # defaults to 1GB. TODO: this must also observe limits if defined
-  auth: # not working in 1.0.x
+    collection_cache_limit_bytes: 1000000000 # defaults to 1GB
+  # Legacy (< 1.0.0): the Rust server (>= 1.0.0) does not use these Python-era auth settings.
+  auth:
     enabled: true
     type: "token" # possible values: basic, token
     existingSecret: ""
@@ -133,4 +169,7 @@ chromadb:
     token:
       headerType: "Authorization" #possible values Authorization, X-Chroma-Token
       value: null # The string used as the token (value). Only used if value not null, otherwise a random string will be generated and used.
-
+  # Extra config keys merged into the v1 server config (>= 1.0.0). Overrides chart-managed keys.
+  extraConfig: {}
+    # compactor:
+    #   disabled_collections: []

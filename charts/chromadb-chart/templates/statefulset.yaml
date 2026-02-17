@@ -16,6 +16,9 @@ spec:
     metadata:
       labels:
         {{- include "chart.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }} # Automatically Roll Deployments
       {{- with .Values.podSpec.podAnnotations }}
@@ -24,18 +27,19 @@ spec:
     spec:
       securityContext: {{ toYaml .Values.podSpec.securityContext | nindent 8 }}
       terminationGracePeriodSeconds: {{ .Values.podSpec.terminationGracePeriodSeconds }}
-      {{- with .Values.imagePullSecrets }}
+      {{- if or .Values.imagePullSecrets (and .Values.global .Values.global.imagePullSecrets) }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml (concat (default list .Values.global.imagePullSecrets) (default list .Values.imagePullSecrets)) | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+      {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
       initContainers:
         - name: generate-htpasswd
-          image: {{ .Values.initImage }}
+          image: "{{ include "chart.images.initImage" . }}"
+          imagePullPolicy: "{{ .Values.initImage.pullPolicy }}"
           env:
             - name: CHROMA_BASIC_USER
               valueFrom:
@@ -63,7 +67,7 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
         - name: "chromadb"
-          image: "{{ .Values.image.repository }}:{{ .Values.chromadb.apiVersion | default .Chart.AppVersion }}"
+          image: "{{ include "chart.images.chroma" . }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled }}
           envFrom:
@@ -113,7 +117,7 @@ spec:
               value: "{{ $bytes }}"
             {{- end }}
             {{- end }}
-            {{- if .Values.chromadb.serverHttpPort }}
+            {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.serverHttpPort }}
             - name: CHROMA_SERVER_HTTP_PORT
               value: "{{ .Values.chromadb.serverHttpPort }}"
             {{- end }}
@@ -202,16 +206,18 @@ spec:
             name: "log-config"
             defaultMode: 0644
         {{- end }}
-        {{- if .Values.chromadb.logConfigMap }}
+        {{- if (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) }}
+          {{- if .Values.chromadb.logConfigMap }}
         - name: log-config
           configMap:
             name: "{{ .Values.chromadb.logConfigMap }}"
             defaultMode: 0644
-        {{- else }}
+          {{- else }}
         - name: log-config
           configMap:
             name:  "log-config"
             defaultMode: 0644
+          {{- end }}
         {{- end }}
         {{- if (semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .)) }}
         - name: v1-config
@@ -223,6 +229,8 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          {{- include "chart.labels" . | nindent 10 }}
       spec:
         accessModes: {{ .Values.chromadb.data.accessModes | toYaml | nindent 14 }}
         {{- if .Values.chromadb.data.storageClass }}

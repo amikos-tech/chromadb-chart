@@ -31,6 +31,51 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
+Returns the proper image name.
+*/}}
+{{- define "chart.images.chroma" -}}
+{{- $registryName := default .Values.image.registry ((.Values.global).imageRegistry) -}}
+{{- $repositoryName := .Values.image.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .Values.image.tag | toString -}}
+{{- if not .Values.image.tag -}}
+  {{ if .Values.chromadb.apiVersion -}}
+    {{- $termination = .Values.chromadb.apiVersion | toString -}}
+  {{- else -}}
+    {{- $termination = .Chart.AppVersion | toString -}}
+  {{- end -}}
+{{- end -}}
+{{- if .Values.image.digest -}}
+    {{- $separator = "@" -}}
+    {{- $termination = .Values.image.digest | toString -}}
+{{- end -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Returns the proper initImage name.
+*/}}
+{{- define "chart.images.initImage" -}}
+{{- $registryName := default .Values.initImage.registry ((.Values.global).imageRegistry) -}}
+{{- $repositoryName := .Values.initImage.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .Values.initImage.tag | toString -}}
+{{- if .Values.initImage.digest -}}
+    {{- $separator = "@" -}}
+    {{- $termination = .Values.initImage.digest | toString -}}
+{{- end -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "chart.labels" -}}
@@ -40,6 +85,9 @@ helm.sh/chart: {{ include "chart.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- with .Values.commonLabels }}
+{{ toYaml . }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -71,6 +119,103 @@ Get the chroma api version
 {{- .Chart.AppVersion }}
 {{- end }}
 {{- end }}
+
+{{/*
+Build the server config dict for the v1-config ConfigMap.
+*/}}
+{{- define "chromadb.serverConfig" -}}
+{{- $port := .Values.chromadb.serverHttpPort | int -}}
+{{- if le $port 0 -}}
+  {{- fail (printf "chromadb.serverHttpPort must be a positive integer, got: %v" .Values.chromadb.serverHttpPort) -}}
+{{- end -}}
+{{- $maxPayload := .Values.chromadb.maxPayloadSizeBytes | int64 -}}
+{{- if le $maxPayload 0 -}}
+  {{- fail (printf "chromadb.maxPayloadSizeBytes must be a positive integer, got: %v" .Values.chromadb.maxPayloadSizeBytes) -}}
+{{- end -}}
+{{- $isV1 := semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .) -}}
+{{- $config := dict -}}
+{{- $_ := set $config "port" $port -}}
+{{- $_ := set $config "listen_address" .Values.chromadb.serverHost -}}
+{{- $_ := set $config "max_payload_size_bytes" $maxPayload -}}
+{{- $_ := set $config "persist_path" .Values.chromadb.persistDirectory -}}
+{{- $_ := set $config "allow_reset" .Values.chromadb.allowReset -}}
+{{- if .Values.chromadb.corsAllowOrigins -}}
+  {{- $_ := set $config "cors_allow_origins" .Values.chromadb.corsAllowOrigins -}}
+{{- end -}}
+{{- if $isV1 -}}
+  {{- with .Values.chromadb.sqliteFilename -}}
+    {{- $_ := set $config "sqlite_filename" . -}}
+  {{- end -}}
+  {{- $sqlitedb := dict -}}
+  {{- $sqliteHashType := .Values.chromadb.sqliteDb.hashType | default "" -}}
+  {{- if $sqliteHashType -}}
+    {{- $sqliteHashType = lower $sqliteHashType -}}
+    {{- if not (or (eq $sqliteHashType "md5") (eq $sqliteHashType "sha256")) -}}
+      {{- fail (printf "chromadb.sqliteDb.hashType must be one of: md5, sha256 (got %q)" .Values.chromadb.sqliteDb.hashType) -}}
+    {{- end -}}
+    {{- $_ := set $sqlitedb "hash_type" $sqliteHashType -}}
+  {{- end -}}
+  {{- $sqliteMigrationMode := .Values.chromadb.sqliteDb.migrationMode | default "" -}}
+  {{- if $sqliteMigrationMode -}}
+    {{- $sqliteMigrationMode = lower $sqliteMigrationMode -}}
+    {{- if not (or (eq $sqliteMigrationMode "apply") (eq $sqliteMigrationMode "validate")) -}}
+      {{- fail (printf "chromadb.sqliteDb.migrationMode must be one of: apply, validate (got %q)" .Values.chromadb.sqliteDb.migrationMode) -}}
+    {{- end -}}
+    {{- $_ := set $sqlitedb "migration_mode" $sqliteMigrationMode -}}
+  {{- end -}}
+  {{- if gt (len $sqlitedb) 0 -}}
+    {{- $_ := set $config "sqlitedb" $sqlitedb -}}
+  {{- end -}}
+  {{- $circuitBreakerRequestsRaw := .Values.chromadb.circuitBreaker.requests -}}
+  {{- if ne $circuitBreakerRequestsRaw nil -}}
+    {{- $circuitBreakerRequestsStr := toString $circuitBreakerRequestsRaw -}}
+    {{- if not (regexMatch "^-?[0-9]+$" $circuitBreakerRequestsStr) -}}
+      {{- fail (printf "chromadb.circuitBreaker.requests must be an integer >= 0 (got %q)" $circuitBreakerRequestsStr) -}}
+    {{- end -}}
+    {{- $circuitBreakerRequests := atoi $circuitBreakerRequestsStr -}}
+    {{- if lt $circuitBreakerRequests 0 -}}
+      {{- fail (printf "chromadb.circuitBreaker.requests must be >= 0 (got %d)" $circuitBreakerRequests) -}}
+    {{- end -}}
+    {{- $_ := set $config "circuit_breaker" (dict "requests" $circuitBreakerRequests) -}}
+  {{- end -}}
+  {{- with .Values.chromadb.segmentManager.hnswIndexPoolCacheConfig -}}
+    {{- if not (kindIs "map" .) -}}
+      {{- fail "chromadb.segmentManager.hnswIndexPoolCacheConfig must be a map/object" -}}
+    {{- end -}}
+    {{- $_ := set $config "segment_manager" (dict "hnsw_index_pool_cache_config" .) -}}
+  {{- end -}}
+  {{- if and (hasKey .Values.chromadb.telemetry "filters") (not (kindIs "slice" .Values.chromadb.telemetry.filters)) -}}
+    {{- fail "chromadb.telemetry.filters must be a list" -}}
+  {{- end -}}
+{{- end -}}
+{{- $otel := dict -}}
+{{- if .Values.chromadb.telemetry.enabled -}}
+  {{- if not .Values.chromadb.telemetry.endpoint -}}
+    {{- fail "chromadb.telemetry.endpoint must be set when chromadb.telemetry.enabled is true" -}}
+  {{- end -}}
+  {{- $_ := set $otel "service_name" .Values.chromadb.telemetry.serviceName -}}
+  {{- $_ := set $otel "endpoint" .Values.chromadb.telemetry.endpoint -}}
+{{- end -}}
+{{- if and $isV1 .Values.chromadb.telemetry.filters -}}
+  {{- $_ := set $otel "filters" .Values.chromadb.telemetry.filters -}}
+{{- end -}}
+{{- if gt (len $otel) 0 -}}
+  {{- $_ := set $config "open_telemetry" $otel -}}
+{{- end -}}
+{{- with .Values.chromadb.extraConfig -}}
+  {{- if not (kindIs "map" .) -}}
+    {{- fail "chromadb.extraConfig must be a map/object" -}}
+  {{- end -}}
+  {{- $config = mergeOverwrite $config . -}}
+{{- end -}}
+{{- if ne (get $config "port" | int) ($port) -}}
+  {{- fail (printf "extraConfig.port (%v) conflicts with chromadb.serverHttpPort (%v) — update serverHttpPort instead" (get $config "port") $.Values.chromadb.serverHttpPort) -}}
+{{- end -}}
+{{- if ne (get $config "listen_address") .Values.chromadb.serverHost -}}
+  {{- fail (printf "extraConfig.listen_address (%s) conflicts with chromadb.serverHost (%s) — update serverHost instead" (get $config "listen_address") .Values.chromadb.serverHost) -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}
 
 {{/*
 Get the Chroma auth token header type

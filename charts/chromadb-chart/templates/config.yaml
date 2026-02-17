@@ -1,8 +1,12 @@
+{{- $isLegacy := semverCompare "< 1.0.0" (include "chromadb.apiVersion" .) -}}
+{{- if $isLegacy }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: log-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
 data:
   log_config.yaml: |-
       version: 1
@@ -38,13 +42,16 @@ data:
           level: {{ .Values.chromadb.logging.chromadb | upper | default "DEBUG" }}
         uvicorn:
           level: {{ .Values.chromadb.logging.uvicorn | upper | default "INFO" }}
+{{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") (eq .Values.chromadb.auth.existingSecret "") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: chromadb-auth
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -61,12 +68,14 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
+{{- if and $isLegacy (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") (eq .Values.chromadb.auth.existingSecret "") }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: chromadb-auth
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -85,12 +94,14 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "chart.fullname" . }}-basic-auth-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -117,12 +128,14 @@ data:
   {{- end }}
 {{- end }}
 ---
-{{- if and .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
+{{- if and $isLegacy .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "chart.fullname" . }}-token-auth-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
@@ -153,24 +166,11 @@ kind: ConfigMap
 metadata:
   name: v1-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
     "helm.sh/hook-weight": "-5"
 data:
   config.yaml: |-
-    {{- if .Values.chromadb.telemetry.enabled }}
-    open_telemetry:
-      service_name: {{ .Values.chromadb.telemetry.serviceName }}
-      endpoint: {{ .Values.chromadb.telemetry.endpoint }}
-    {{- end }}
-    port: {{ .Values.chromadb.serverHttpPort }}
-    listen_address: {{ .Values.chromadb.serverHost }}
-    max_payload_size_bytes: {{ .Values.chromadb.maxPayloadSizeBytes | int64 }}
-    {{- if .Values.chromadb.corsAllowOrigins }}
-      {{- if and (eq (len .Values.chromadb.corsAllowOrigins) 1) (eq (index .Values.chromadb.corsAllowOrigins 0) "*") }}
-      {{ fail "cors_allow_origins must not be set to '*' when only one origin is allowed" }}
-      {{- end }}
-    cors_allow_origins: {{ .Values.chromadb.corsAllowOrigins | toJson }}
-    {{- end }}
-    persist_path: {{ .Values.chromadb.persistDirectory }}
-    allow_reset: {{ .Values.chromadb.allowReset }}
+    {{- include "chromadb.serverConfig" . | nindent 4 }}

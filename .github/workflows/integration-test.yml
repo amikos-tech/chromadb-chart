@@ -7,6 +7,7 @@ on:
     paths:
       - charts/**
       - tests/**
+      - .github/workflows/integration-test.yml
   pull_request:
     branches:
       - main
@@ -14,19 +15,20 @@ on:
     paths:
       - charts/**
       - tests/**
+      - .github/workflows/integration-test.yml
   workflow_dispatch:
 
 env:
-  LATEST_VERSION: "1.0.10"
+  LATEST_VERSION: "1.5.0"
 jobs:
   integration-test:
     strategy:
       matrix:
-        kubernetes-version: [1.23.0, 1.33.1]
+        kubernetes-version: [1.28.0, 1.33.1, 1.35.1]
         chroma-version:
           [
             0.6.3,
-            1.0.10,
+            1.5.0,
           ]
     runs-on: ubuntu-latest
     steps:
@@ -43,32 +45,51 @@ jobs:
           kubernetes-version: ${{ matrix.kubernetes-version }}
       - name: Install chromadb
         run: |
-          set -e
+          set -euo pipefail
           sleep 20
+          EXTRA_ARGS=()
+          if [ "${{ matrix.chroma-version }}" = "${{ env.LATEST_VERSION }}" ]; then
+            EXTRA_ARGS+=(
+              --set chromadb.extraConfig.scorecard_enabled=true
+              --set chromadb.extraConfig.circuit_breaker.requests=500
+            )
+          fi
           helm install chromadb ./charts/chromadb-chart \
           --set chromadb.isPersistent=true \
           --set chromadb.allowReset=true \
-          --set chromadb.apiVersion=${{ matrix.chroma-version }}
+          --set "chromadb.apiVersion=${{ matrix.chroma-version }}" \
+          "${EXTRA_ARGS[@]}"
       - name: Wait for deployment to be ready
         run: |
+          set -euo pipefail
           kubectl wait \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/name=chromadb \
           --timeout=120s
+      - name: Verify extraConfig is present in v1-config
+        if: ${{ matrix.chroma-version == env.LATEST_VERSION }}
+        run: |
+          set -euo pipefail
+          config="$(kubectl get configmap v1-config -o go-template='{{ index .data "config.yaml" }}')"
+          printf '%s\n' "$config"
+          printf '%s\n' "$config" | grep -q '^scorecard_enabled: true$'
+          printf '%s\n' "$config" | grep -q '^circuit_breaker:$'
+          printf '%s\n' "$config" | grep -q '^  requests: 500$'
       - name: Test
         run: |
-          set -e
+          set -euo pipefail
           kubectl get pods -A
           kubectl get svc -A
           helm test chromadb
       - name: Debug
         if: failure()
         run: |
+          set -euo pipefail
           kubectl get pods -A
           kubectl get svc -A
-          kubectl logs --selector=app.kubernetes.io/name=chromadb --previous
+          kubectl logs --selector=app.kubernetes.io/name=chromadb --previous || true
       - name: Setup tmate session
-        if: failure()
+        if: failure() && github.event_name == 'workflow_dispatch'
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
