@@ -51,7 +51,7 @@ jobs:
           if [ "${{ matrix.chroma-version }}" = "${{ env.LATEST_VERSION }}" ]; then
             EXTRA_ARGS+=(
               --set chromadb.extraConfig.scorecard_enabled=true
-              --set chromadb.extraConfig.executor.num_worker_threads=8
+              --set chromadb.extraConfig.circuit_breaker.requests=500
             )
           fi
           helm install chromadb ./charts/chromadb-chart \
@@ -73,8 +73,8 @@ jobs:
           config="$(kubectl get configmap v1-config -o go-template='{{ index .data "config.yaml" }}')"
           printf '%s\n' "$config"
           printf '%s\n' "$config" | grep -q '^scorecard_enabled: true$'
-          printf '%s\n' "$config" | grep -q '^executor:$'
-          printf '%s\n' "$config" | grep -q '^  num_worker_threads: 8$'
+          printf '%s\n' "$config" | grep -q '^circuit_breaker:$'
+          printf '%s\n' "$config" | grep -q '^  requests: 500$'
       - name: Test
         run: |
           set -euo pipefail
@@ -89,7 +89,7 @@ jobs:
           kubectl get svc -A
           kubectl logs --selector=app.kubernetes.io/name=chromadb --previous || true
       - name: Setup tmate session
-        if: failure()
+        if: failure() && github.event_name == 'workflow_dispatch'
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true

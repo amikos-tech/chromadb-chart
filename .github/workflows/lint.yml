@@ -39,13 +39,17 @@ jobs:
           YQ_CHECKSUMS_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums"
           TMP_YQ="$(mktemp)"
           TMP_CHECKSUMS="$(mktemp)"
+          cleanup() {
+            rm -f "${TMP_YQ}" "${TMP_CHECKSUMS}"
+          }
+          trap cleanup EXIT
 
-          wget -qO "${TMP_YQ}" "${YQ_URL}"
-          wget -qO "${TMP_CHECKSUMS}" "${YQ_CHECKSUMS_URL}"
+          wget -nv -O "${TMP_YQ}" "${YQ_URL}"
+          wget -nv -O "${TMP_CHECKSUMS}" "${YQ_CHECKSUMS_URL}"
 
-          EXPECTED_SHA="$(grep " ${YQ_BIN}$" "${TMP_CHECKSUMS}" | awk '{print $1}')"
-          if [ -z "${EXPECTED_SHA}" ]; then
-            echo "Unable to find checksum entry for ${YQ_BIN}" >&2
+          if ! EXPECTED_SHA="$(awk -v bin="${YQ_BIN}" '$2 == bin || $2 == ("*" bin) {print $1; found=1; exit} END {if (!found) exit 1}' "${TMP_CHECKSUMS}")"; then
+            echo "Unable to find checksum entry for ${YQ_BIN} in checksums file" >&2
+            sed -n '1,40p' "${TMP_CHECKSUMS}" >&2
             exit 1
           fi
 
