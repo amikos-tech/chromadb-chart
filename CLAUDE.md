@@ -86,7 +86,7 @@ The chart supports multiple ChromaDB versions from 0.4.3 to 1.0.x with version-s
 
 ## Important Notes
 
-- Default ChromaDB version is 1.5.0 (as of chart version 0.1.25)
+- Default ChromaDB version is 1.5.0 (as of chart version 0.2.0)
 - Authentication is NOT supported in ChromaDB 1.0.x - use network-level security or API gateway
 - Data persistence is enabled by default at `/data` directory
 - Anonymous telemetry is disabled by default for privacy
