@@ -1,3 +1,7 @@
+{{- $allowReset := include "chromadb.allowReset" . -}}
+{{- $isPersistentStr := include "chromadb.isPersistent" . -}}
+{{- $isPersistent := eq $isPersistentStr "true" -}}
+{{- $persistDirectory := include "chromadb.persistDirectory" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -87,11 +91,11 @@ spec:
                   fieldPath: metadata.name
             {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) }}
             - name: IS_PERSISTENT
-              value: "{{ .Values.chromadb.isPersistent }}"
+              value: "{{ $isPersistentStr }}"
             - name: PERSIST_DIRECTORY
-              value: "{{ .Values.chromadb.persistDirectory }}"
+              value: "{{ $persistDirectory }}"
             - name: ALLOW_RESET
-              value: "{{ .Values.chromadb.allowReset | default false}}"
+              value: "{{ $allowReset }}"
             - name: ANONYMIZED_TELEMETRY
               value: "{{ .Values.chromadb.anonymizedTelemetry | default false }}"
             {{- if .Values.chromadb.corsAllowOrigins }}
@@ -165,8 +169,8 @@ spec:
               name: log-config-legacy
               subPath: log_config.yaml
             {{- end }}
-            {{- if eq .Values.chromadb.isPersistent true }}
-            - mountPath: "{{.Values.chromadb.persistDirectory}}"
+            {{- if $isPersistent }}
+            - mountPath: "{{ $persistDirectory }}"
               name: data
             {{- end }}
             {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) (semverCompare ">= 0.4.7" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "basic") }}
@@ -226,7 +230,7 @@ spec:
             name: v1-config
             defaultMode: 0644
         {{- end }}
-  {{- if eq .Values.chromadb.isPersistent true }}
+  {{- if $isPersistent }}
   volumeClaimTemplates:
     - metadata:
         name: data

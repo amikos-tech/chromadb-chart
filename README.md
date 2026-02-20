@@ -48,13 +48,13 @@ Example `values.yaml` file:
 
 ```yaml
 chromadb:
-  allowReset: "true"
+  allowReset: true
 ```
 
 Alternatively you can specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 ```bash
-helm install chroma chroma/chromadb --set chromadb.allowReset="true"
+helm install chroma chroma/chromadb --set chromadb.allowReset=true
 ```
 
 ## Chart Configuration Values
@@ -62,9 +62,9 @@ helm install chroma chroma/chromadb --set chromadb.allowReset="true"
 | Key                                                 | Type    | Default                               | Description                                                                                                                                                                                                                                                                                                |
 |-----------------------------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `chromadb.apiVersion`                               | string  | `1.5.0` (Chart app version)           | The ChromaDB version. Supported version `0.4.3` - `1.x`                                                                                                                                                                                                                                                    |
-| `chromadb.allowReset`                               | boolean | `false`                               | Allows resetting the index (delete all data)                                                                                                                                                                                                                                                               |
-| `chromadb.isPersistent`                             | boolean | `true`                                | `< 1.0.0`: controls PVC plus `IS_PERSISTENT` server mode. `>= 1.0.0`: controls only PVC creation/mounting for `persistDirectory`; the Rust server always writes to disk, so data is ephemeral without a PVC.                                                                                           |
-| `chromadb.persistDirectory`                         | string  | `/data`                               | The location to store the index data. This configure both chromadb and underlying persistent volume                                                                                                                                                                                                        |
+| `chromadb.allowReset`                               | boolean | `false`                               | Allows resetting the index (delete all data). Accepts bool or string `true`/`false` (case-insensitive); rendered value is normalized to lowercase.                                                                                                                                                        |
+| `chromadb.isPersistent`                             | boolean | `true`                                | `< 1.0.0`: controls PVC plus `IS_PERSISTENT` server mode. `>= 1.0.0`: controls only PVC creation/mounting for `persistDirectory`; the Rust server always writes to disk, so data is ephemeral without a PVC. Accepts bool or string `true`/`false` (case-insensitive); rendered value is normalized to lowercase. |
+| `chromadb.persistDirectory`                         | string  | `/data`                               | Absolute path where index data is stored. Used for both Chroma server config and mounted persistent volume path.                                                                                                                                                                                            |
 | `chromadb.anonymizedTelemetry`                      | boolean | `false`                               | Legacy PostHog telemetry flag for `< 1.0.0`. **Note**: This has no effect in Chroma `>= 1.0.0`; use `chromadb.telemetry.*` for OTEL.                                                                                                                                                                      |
 | `chromadb.corsAllowOrigins`                         | list    | `[]`                                  | List of allowed CORS origins. Wildcard `["*"]` is supported.                                                                                                                                                                                                                                               |
 | `chromadb.apiImpl`                                  | string  | `- "chromadb.api.segment.SegmentAPI"` | Legacy/removed key kept for historical compatibility in docs. The chart does not read this value in current versions.                                                                                                                                                                                     |
