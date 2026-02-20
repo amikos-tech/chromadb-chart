@@ -54,6 +54,16 @@ get_statefulset_env_value() {
   echo "$output" | yq eval ".spec.template.spec.containers[] | select(.name == \"chromadb\") | [.env[]? | select(.name == \"$env_name\") | .value][0] // \"null\"" -
 }
 
+get_statefulset_value() {
+  local expr="$1"; shift
+  local output
+  output=$(helm template test "$CHART_DIR" "$@" --show-only templates/statefulset.yaml 2>&1) || {
+    echo "TEMPLATE_ERROR: $output" >&2
+    return 1
+  }
+  echo "$output" | yq eval "$expr" -
+}
+
 assert_equal() {
   local desc="$1" actual="$2" expected="$3"
   if [ "$actual" = "$expected" ]; then
@@ -287,6 +297,35 @@ echo ""
 echo "28. extraConfig must reject scalar values"
 assert_template_fails "extraConfig rejects scalar string values" \
   --set 'chromadb.extraConfig=invalid'
+
+echo ""
+echo "29. allowReset accepts case-insensitive string booleans"
+config=$(get_v1_config --set-string 'chromadb.allowReset=TRUE')
+assert_config_key "allow_reset normalizes uppercase TRUE to true" "$config" "allow_reset" "true"
+
+echo ""
+echo "30. isPersistent accepts case-insensitive string booleans"
+is_persistent_env=$(get_statefulset_env_value "IS_PERSISTENT" --set 'chromadb.apiVersion=0.6.3' --set-string 'chromadb.isPersistent=FALSE')
+assert_equal "IS_PERSISTENT normalizes uppercase FALSE to false" "$is_persistent_env" "false"
+pvc_templates=$(get_statefulset_value '.spec.volumeClaimTemplates | length // 0' --set-string 'chromadb.isPersistent=FALSE')
+assert_equal "volumeClaimTemplates omitted when isPersistent is false string" "$pvc_templates" "0"
+
+echo ""
+echo "31. allowReset rejects invalid string values"
+assert_template_fails "allowReset rejects non-boolean strings" \
+  --set-string 'chromadb.allowReset=yes'
+
+echo ""
+echo "32. isPersistent rejects invalid string values"
+assert_template_fails "isPersistent rejects non-boolean strings" \
+  --set-string 'chromadb.isPersistent=on'
+
+echo ""
+echo "33. persistDirectory must be an absolute path"
+assert_template_fails "persistDirectory rejects relative paths" \
+  --set-string 'chromadb.persistDirectory=data'
+assert_template_fails "persistDirectory rejects empty strings" \
+  --set-string 'chromadb.persistDirectory='
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"

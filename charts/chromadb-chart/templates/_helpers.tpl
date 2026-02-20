@@ -121,6 +121,59 @@ Get the chroma api version
 {{- end }}
 
 {{/*
+Normalize boolean values passed as bool or string.
+Returns "true" or "false".
+*/}}
+{{- define "chromadb.boolValue" -}}
+{{- $name := .name -}}
+{{- $value := .value -}}
+{{- if kindIs "bool" $value -}}
+  {{- if $value }}true{{ else }}false{{ end -}}
+{{- else if kindIs "string" $value -}}
+  {{- $normalized := lower (trim $value) -}}
+  {{- if or (eq $normalized "true") (eq $normalized "false") -}}
+    {{- $normalized -}}
+  {{- else -}}
+    {{- fail (printf "%s must be true or false (case-insensitive), got %q" $name $value) -}}
+  {{- end -}}
+{{- else -}}
+  {{- fail (printf "%s must be a boolean or a string true/false, got type %s" $name (kindOf $value)) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Normalize/validate chromadb.allowReset.
+*/}}
+{{- define "chromadb.allowReset" -}}
+{{- include "chromadb.boolValue" (dict "name" "chromadb.allowReset" "value" .Values.chromadb.allowReset) -}}
+{{- end }}
+
+{{/*
+Normalize/validate chromadb.isPersistent.
+*/}}
+{{- define "chromadb.isPersistent" -}}
+{{- include "chromadb.boolValue" (dict "name" "chromadb.isPersistent" "value" .Values.chromadb.isPersistent) -}}
+{{- end }}
+
+{{/*
+Validate and normalize the persist directory path.
+*/}}
+{{- define "chromadb.persistDirectory" -}}
+{{- $raw := .Values.chromadb.persistDirectory -}}
+{{- if not (kindIs "string" $raw) -}}
+  {{- fail (printf "chromadb.persistDirectory must be a string absolute path, got type %s" (kindOf $raw)) -}}
+{{- end -}}
+{{- $path := trim $raw -}}
+{{- if eq $path "" -}}
+  {{- fail "chromadb.persistDirectory must not be empty" -}}
+{{- end -}}
+{{- if not (hasPrefix "/" $path) -}}
+  {{- fail (printf "chromadb.persistDirectory must be an absolute path starting with '/': got %q" $raw) -}}
+{{- end -}}
+{{- $path -}}
+{{- end }}
+
+{{/*
 Build the server config dict for the v1-config ConfigMap.
 */}}
 {{- define "chromadb.serverConfig" -}}
@@ -133,12 +186,14 @@ Build the server config dict for the v1-config ConfigMap.
   {{- fail (printf "chromadb.maxPayloadSizeBytes must be a positive integer, got: %v" .Values.chromadb.maxPayloadSizeBytes) -}}
 {{- end -}}
 {{- $isV1 := semverCompare ">= 1.0.0" (include "chromadb.apiVersion" .) -}}
+{{- $allowReset := eq (include "chromadb.allowReset" .) "true" -}}
+{{- $persistDirectory := include "chromadb.persistDirectory" . -}}
 {{- $config := dict -}}
 {{- $_ := set $config "port" $port -}}
 {{- $_ := set $config "listen_address" .Values.chromadb.serverHost -}}
 {{- $_ := set $config "max_payload_size_bytes" $maxPayload -}}
-{{- $_ := set $config "persist_path" .Values.chromadb.persistDirectory -}}
-{{- $_ := set $config "allow_reset" .Values.chromadb.allowReset -}}
+{{- $_ := set $config "persist_path" $persistDirectory -}}
+{{- $_ := set $config "allow_reset" $allowReset -}}
 {{- if .Values.chromadb.corsAllowOrigins -}}
   {{- $_ := set $config "cors_allow_origins" .Values.chromadb.corsAllowOrigins -}}
 {{- end -}}
