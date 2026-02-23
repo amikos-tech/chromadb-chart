@@ -116,6 +116,20 @@ helm install chroma chroma/chromadb --set chromadb.allowReset=true
 | `commonLabels`                                      | object  | `{}`                                  | Additional labels applied to all chart resources (StatefulSet, Service, Ingress, ConfigMaps, Secrets, PVCs, test Jobs).                                                                                                                                                                                    |
 | `podLabels`                                         | object  | `{}`                                  | Additional labels applied to pods only. Does not affect `matchLabels`.                                                                                                                                                                                                                                     |
 
+## Nginx Configuration Values
+
+| Key                                         | Type    | Default                        | Description                                                                                |
+| ------------------------------------------- | ------- | ------------------------------ | ------------------------------------------------------------------------------------------ |
+| `nginx.enabled`                             | boolean | `false`                        | Enable / disable the NGINX proxy sidecar.                                                  |
+| `nginx.image`                               | string  | `docker.io/library/nginx:1.23` | NGINX container image (registry + repository + tag).                                       |
+| `nginx.imagePullPolicy`                     | string  | `Always`                       | Image pull policy.                                                                         |
+| `nginx.resources`                           | object  | `{}`                           | Resource requests/limits for the NGINX container.                                          |
+| `nginx.containerPorts.http`                 | int     | `80`                          | Port exposed by nginx when `tls.enabled` is false.            |
+| `nginx.containerPorts.https`                 | int     | `443`                          | Port exposed by nginx when `tls.enabled` is true.            |
+| `nginx.tls.enabled`                         | boolean | `true`                         | Enable TLS termination inside the NGINX container (expects `chromadb-tls` secret mounted). |
+| `nginx.containerSecurityContext.enabled`    | boolean | `false`                        | Enable custom security context for the NGINX container.                                    |
+| `nginx.containerSecurityContext.secContext` | object  | see values.yaml                | SecurityContext spec applied if `containerSecurityContext.enabled` is `true`.              |
+
 ### Legacy values for `< 1.0.0`
 
 For Chroma `>= 1.0.0` (Rust server), the chart keeps the following values only for backward compatibility and ignores them:
