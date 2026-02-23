@@ -76,6 +76,36 @@ Returns the proper initImage name.
 {{- end }}
 
 {{/*
+Returns the proper nginx name.
+*/}}
+{{- define "chart.images.nginx" -}}
+{{- $registryName := default .Values.nginx.image.registry ((.Values.global).imageRegistry) -}}
+{{- $repositoryName := .Values.nginx.image.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .Values.nginx.image.tag | toString -}}
+{{- if .Values.nginx.image.digest -}}
+    {{- $separator = "@" -}}
+    {{- $termination = .Values.nginx.image.digest | toString -}}
+{{- end -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Returns the nginx port based on TLS configuration
+*/}}
+{{- define "chromadb.nginx.port" -}}
+{{- if .Values.nginx.tls.enabled -}}
+{{- .Values.nginx.containerPorts.https -}}
+{{- else -}}
+{{- .Values.nginx.containerPorts.http -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "chart.labels" -}}
