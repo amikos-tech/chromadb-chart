@@ -61,7 +61,7 @@ helm install chroma chroma/chromadb --set chromadb.allowReset=true
 
 | Key                                                 | Type    | Default                               | Description                                                                                                                                                                                                                                                                                                |
 |-----------------------------------------------------|---------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chromadb.apiVersion`                               | string  | `1.5.0` (Chart app version)           | The ChromaDB version. Supported version `0.4.3` - `1.x`                                                                                                                                                                                                                                                    |
+| `chromadb.apiVersion`                               | string  | `1.5.2` (Chart app version)           | The ChromaDB version. Supported version `0.4.3` - `1.x`                                                                                                                                                                                                                                                    |
 | `chromadb.allowReset`                               | boolean | `false`                               | Allows resetting the index (delete all data). Accepts bool or string `true`/`false` (case-insensitive); rendered value is normalized to lowercase.                                                                                                                                                        |
 | `chromadb.isPersistent`                             | boolean | `true`                                | `< 1.0.0`: controls PVC plus `IS_PERSISTENT` server mode. `>= 1.0.0`: controls only PVC creation/mounting for `persistDirectory`; the Rust server always writes to disk, so data is ephemeral without a PVC. Accepts bool or string `true`/`false` (case-insensitive); rendered value is normalized to lowercase. |
 | `chromadb.persistDirectory`                         | string  | `/data`                               | Absolute path where index data is stored. Used for both Chroma server config and mounted persistent volume path.                                                                                                                                                                                            |
@@ -259,7 +259,7 @@ To use the chart as a dependency, add the following to your `Chart.yaml` file:
 ```yaml
 dependencies:
   - name: chromadb
-    version: 0.2.0
+    version: 0.2.1
     repository: "https://amikos-tech.github.io/chromadb-chart/"
 ```
 

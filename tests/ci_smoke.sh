@@ -21,7 +21,7 @@ helm lint "$CHART_DIR"
 
 echo "==> Rendering v1-config with integration extraConfig values"
 config="$(helm template test "$CHART_DIR" \
-  --set chromadb.apiVersion=1.5.0 \
+  --set chromadb.apiVersion=1.5.2 \
   --set chromadb.extraConfig.scorecard_enabled=true \
   --set chromadb.extraConfig.circuit_breaker.requests=500 \
   | yq eval 'select(.metadata.name == "v1-config") | .data["config.yaml"]' -)"
