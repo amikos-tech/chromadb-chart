@@ -18,7 +18,14 @@ spec:
           command: ['curl']
           args:
             - '-v'
+            {{- if .Values.nginx.enabled }}
+            {{- if .Values.nginx.tls.enabled }}
+            - '-k'
+            {{- end }}
+            - 'http{{ .Values.nginx.tls.enabled | ternary "s" "" }}://{{ include "chart.fullname" . }}:{{ include "chromadb.nginx.port" . }}/api/v1/hearbeat'
+            {{- else }}
             - 'http://{{ include "chart.fullname" . }}:{{ .Values.chromadb.serverHttpPort }}/api/v1/hearbeat'
+            {{- end }}
             {{- if and (semverCompare "< 1.0.0" (include "chromadb.apiVersion" .)) .Values.chromadb.auth.enabled (eq .Values.chromadb.auth.type "token") }}
             {{- $existingConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace (include "chart.fullname" . | printf "%s-token-auth-config")) }}
             {{- $existingSecret := (lookup "v1" "Secret" .Release.Namespace (.Values.chromadb.auth.existingSecret | default "chromadb-auth")) }}
