@@ -2,6 +2,29 @@ apiVersion: v1
 entries:
   chromadb:
   - apiVersion: v2
+    appVersion: 1.5.3
+    created: "2026-03-08T17:00:51.267922727Z"
+    description: A Helm chart for Chroma DB vector store
+    digest: d7a1b58248d6df555d6cd4d7f7e99884d0da3924e45dfcb0ec197bbd4996ab81
+    home: https://github.com/amikos-tech/chromadb-chart
+    icon: https://github.com/chroma-core/docs/blob/0b58523496c3e6d07aac39f066f73378ed926750/static/img/chroma.png
+    keywords:
+    - chromadb
+    - vectordb
+    - vectorstore
+    - ai/ml
+    maintainers:
+    - email: opensource@amikos.tech
+      name: Amikos Tech
+      url: https://amikos.tech
+    name: chromadb
+    sources:
+    - https://github.com/amikos-tech/chromadb-chart
+    type: application
+    urls:
+    - https://github.com/amikos-tech/chromadb-chart/releases/download/chromadb-0.2.2/chromadb-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
     appVersion: 1.5.0
     created: "2026-02-17T19:53:59.144496329Z"
     description: A Helm chart for Chroma DB vector store
@@ -519,4 +542,4 @@ entries:
     urls:
     - https://github.com/amikos-tech/chromadb-chart/releases/download/chromadb-0.1.4/chromadb-0.1.4.tgz
     version: 0.1.4
-generated: "2026-02-17T19:53:59.144694853Z"
+generated: "2026-03-08T17:00:51.268103414Z"
