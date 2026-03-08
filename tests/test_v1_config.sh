@@ -193,7 +193,7 @@ assert_equal "CHROMA_SERVER_HTTP_PORT is default 8000 on < 1.0.0" "$server_http_
 
 echo ""
 echo "15. Custom serverHttpPort on >= 1.0.0 does not create legacy env var"
-server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=1.5.2' --set 'chromadb.serverHttpPort=9000')
+server_http_port_env=$(get_statefulset_env_value "CHROMA_SERVER_HTTP_PORT" --set 'chromadb.apiVersion=1.5.3' --set 'chromadb.serverHttpPort=9000')
 assert_equal "CHROMA_SERVER_HTTP_PORT remains absent on >= 1.0.0 with custom port" "$server_http_port_env" "null"
 
 echo ""
@@ -330,7 +330,7 @@ assert_template_fails "persistDirectory rejects empty strings" \
 echo ""
 echo "34. Default image uses latest chart appVersion"
 default_image=$(get_statefulset_value '.spec.template.spec.containers[] | select(.name == "chromadb") | .image')
-assert_equal "default image tag is 1.5.2" "$default_image" "ghcr.io/chroma-core/chroma:1.5.2"
+assert_equal "default image tag is 1.5.3" "$default_image" "ghcr.io/chroma-core/chroma:1.5.3"
 
 echo ""
 echo "--- Results: $PASS passed, $FAIL failed ---"
