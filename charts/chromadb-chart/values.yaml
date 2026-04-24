@@ -175,3 +175,46 @@ chromadb:
   extraConfig: {}
     # compactor:
     #   disabled_collections: []
+
+nginx:
+  enabled: false
+  image:
+    repository: docker.io/library/nginx
+    tag: "1.23"
+  imagePullPolicy: Always
+  resources: {}
+  containerPorts:
+    http: 80
+    https: 443
+  tls:
+    enabled: true
+    secretName: ""
+  readinessProbe:
+    enabled: true
+    failureThreshold: 20
+    timeoutSeconds: 10
+    periodSeconds: 5
+  livenessProbe:
+    enabled: true
+    failureThreshold: 40
+    timeoutSeconds: 10
+    periodSeconds: 5
+  startupProbe:
+    enabled: true
+    failureThreshold: 1000
+    periodSeconds: 5
+    initialDelaySeconds: 10
+  containerSecurityContext:
+    enabled: false
+    secContext:
+      seLinuxOptions: {}
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
